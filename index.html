@@ -22,12 +22,17 @@
     --on-green-2: #D6E2DE;
     --on-green-line: rgba(255,255,255,.16);
     --ease: cubic-bezier(.22, 1, .36, 1);
+    --t-fast: 200ms;   /* press, small colour changes */
+    --t-hover: 320ms;  /* hover colour and borders */
+    --t-fill: 560ms;   /* button fills, underlines, progress */
+    --sweep: cubic-bezier(.45, 0, .15, 1); /* eases in and out, for things that sweep across */
+    --t-enter: 420ms;  /* panels and rows that appear */
     --side: 360px;
   }
   * { box-sizing: border-box; }
-  html { -webkit-text-size-adjust: 100%; }
+  html { -webkit-text-size-adjust: 100%; -webkit-tap-highlight-color: transparent; }
   body { margin: 0; font-family: Poppins, sans-serif; font-size: 14px; line-height: 20px; color: var(--text); background: #fff; }
-  a { color: inherit; text-decoration: none; transition: color 160ms var(--ease), border-color 160ms var(--ease), background-color 160ms var(--ease); }
+  a { color: inherit; text-decoration: none; transition: color var(--t-hover) var(--ease), border-color var(--t-hover) var(--ease), background-color var(--t-hover) var(--ease); }
   :focus-visible { outline: 2px solid var(--green); outline-offset: 2px; }
   .on-green :focus-visible { outline-color: var(--on-green); }
   /* Cotta, loaded from the TDO store itself (not copied into this repo). Cormorant is the fallback. */
@@ -47,36 +52,37 @@
   .locale { display: flex; align-items: center; gap: 8px; color: #667269; }
   .locale .sep { color: #54655E; font-size: 11px; }
   .hlink { display: inline-flex; align-items: center; gap: 8px; color: var(--green); letter-spacing: .1px; }
-  .hlink:hover { color: var(--green-press); }
-  .hlink:hover span { text-decoration: underline; text-underline-offset: 4px; text-decoration-thickness: 1px; }
+  /* Underline that draws in from the left on hover */
+  .hlink span { background: linear-gradient(currentColor, currentColor) 0 100% / 0 1px no-repeat; padding-bottom: 3px; transition: background-size var(--t-fill) var(--sweep); }
+  .hlink .hicon { transition: transform var(--t-hover) var(--ease); }
   .logo { display: block; line-height: 0; }
   .logo img { display: block; width: 370px; height: auto; }
   header { border-bottom: 1px solid #DCE4DF; }
   nav.main { display: flex; justify-content: center; align-items: center; gap: 40px; height: 56px; border-top: 1px solid #EDF0EB; font-family: Jost, sans-serif; font-size: 13px; letter-spacing: .15px; }
-  nav.main a { display: inline-flex; align-items: center; gap: 8px; height: 100%; color: var(--text); border-bottom: 1px solid transparent; }
-  nav.main a:hover, nav.main a[aria-current] { color: var(--green); border-bottom-color: var(--green); }
-  nav.main .chev { width: 12px; height: 12px; fill: none; stroke: currentColor; stroke-width: 1.15; stroke-linecap: round; stroke-linejoin: round; transition: transform 160ms var(--ease); }
-  nav.main a:hover .chev { transform: translateY(1px); }
+  nav.main a { position: relative; display: inline-flex; align-items: center; gap: 8px; height: 100%; color: var(--text); }
+  nav.main a::after { content: ""; position: absolute; left: 0; right: 0; bottom: -1px; height: 1px; background: var(--green); transform: scaleX(0); transition: transform var(--t-fill) var(--sweep); }
+  nav.main a[aria-current] { color: var(--green); }
+  nav.main a[aria-current]::after { transform: scaleX(1); }
+  nav.main .chev { width: 12px; height: 12px; fill: none; stroke: currentColor; stroke-width: 1.15; stroke-linecap: round; stroke-linejoin: round; transition: transform var(--t-hover) var(--ease); }
   nav.main .divider { width: 1px; height: 24px; background: #DCE4DF; }
   nav.main a.studio { color: var(--green); }
 
   /* Breadcrumb */
   .crumbs { display: flex; align-items: center; gap: 8px; font-size: 12px; line-height: 16px; color: var(--text-3); padding: 24px 0 32px; }
-  .crumbs a:hover { color: var(--green); }
   .crumbs .icon { width: 12px; height: 12px; }
   .eyebrow { font-size: 12px; line-height: 16px; letter-spacing: .16em; color: var(--green); }
   h1 { margin: 0; font-size: 48px; line-height: 1.06; letter-spacing: -.01em; }
   .actions { display: flex; flex-direction: column; gap: 12px; }
 
   /* Buttons: square corners as in the TDO store */
-  .btn { display: flex; align-items: center; justify-content: center; gap: 10px; height: 48px; padding: 0 20px; font-size: 12px; letter-spacing: .12em; border: 1px solid var(--green); transition: background-color 160ms var(--ease), color 160ms var(--ease), border-color 160ms var(--ease), transform 120ms var(--ease); }
+  /* Hover: the fill sweeps in from the left (transform only, so it stays smooth on phones), text and icon change colour with it */
+  .btn { --fill: var(--green); --fill-text: var(--on-green); position: relative; isolation: isolate; overflow: hidden; display: flex; align-items: center; justify-content: center; gap: 10px; height: 48px; padding: 0 20px; font-size: 12px; letter-spacing: .12em; border: 1px solid var(--green); transition: background-color var(--t-hover) var(--ease), color var(--t-hover) var(--ease), border-color var(--t-hover) var(--ease), transform var(--t-fast) var(--ease); }
+  .btn::before { content: ""; position: absolute; inset: 0; z-index: -1; background: var(--fill); transform: scaleX(0); transform-origin: right center; transition: transform var(--t-fill) var(--sweep); }
+  .btn svg { transition: transform var(--t-hover) var(--ease); }
   .btn:active { transform: scale(.98); }
-  .btn.primary { background: var(--green); color: var(--on-green); }
-  .btn.primary:hover { background: var(--green-press); border-color: var(--green-press); }
+  .btn.primary { --fill: var(--green-press); background: var(--green); color: var(--on-green); }
   .btn.secondary { color: var(--green); background: #fff; }
-  .btn.secondary:hover { background: var(--surface); }
-  .btn.on-dark { border-color: var(--on-green); color: var(--on-green); background: transparent; }
-  .btn.on-dark:hover { background: var(--on-green); color: var(--green); }
+  .btn.on-dark { --fill: var(--on-green); --fill-text: var(--green); border-color: var(--on-green); color: var(--on-green); background: transparent; }
 
   .note { margin-top: 12px; font-size: 12px; line-height: 16px; color: var(--text-3); }
 
@@ -100,13 +106,19 @@
   .care details { border-bottom: 1px solid #D5DCD7; }
   .care summary { display: flex; align-items: center; justify-content: space-between; gap: 16px; min-height: 52px; padding: 16px 0; cursor: pointer; list-style: none; font-size: 12px; line-height: 18px; font-weight: 400; color: var(--text); }
   .care summary::-webkit-details-marker { display: none; }
-  .care summary:hover { color: var(--green); }
-  .care .plus { position: relative; width: 12px; height: 12px; flex: none; transition: transform 200ms var(--ease); }
+  .care summary { transition: color var(--t-hover) var(--ease); }
+  .care .plus { position: relative; width: 12px; height: 12px; flex: none; transition: transform var(--t-enter) var(--ease); }
   .care .plus::before, .care .plus::after { content: ""; position: absolute; left: 0; top: 5.5px; width: 12px; height: 1px; background: currentColor; }
   .care .plus::after { transform: rotate(90deg); }
   .care details[open] .plus { transform: rotate(45deg); }
   .care details p { margin: 0 0 16px; padding-right: 32px; font-size: 12px; line-height: 23px; color: #626764; }
   .care details p:last-child { margin-bottom: 20px; }
+  /* Smooth open and close where the browser can animate to auto height; elsewhere it simply opens */
+  @supports (interpolate-size: allow-keywords) {
+    .care { interpolate-size: allow-keywords; }
+    .care details::details-content { block-size: 0; overflow: hidden; opacity: 0; transition: block-size var(--t-fill) var(--sweep), opacity var(--t-fill) var(--ease), content-visibility var(--t-fill) allow-discrete; }
+    .care details[open]::details-content { block-size: auto; opacity: 1; }
+  }
 
   /* Footer, matched to the store */
   footer { margin-top: 0; background: #08362F; color: #CBD8D2; padding-top: 60px; font-family: Jost, sans-serif; font-size: 13px; line-height: 20px; }
@@ -114,7 +126,6 @@
   .cols div { display: flex; flex-direction: column; gap: 10px; }
   .cols h3 { margin: 0 0 6px; font-size: 15px; line-height: 21px; font-weight: 500; letter-spacing: 0; text-transform: uppercase; color: #fff; }
   footer a { color: #CBD8D2; }
-  footer a:hover { color: #fff; }
   .tel { display: flex; gap: 8px; font-variant-numeric: tabular-nums; }
   .legal { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; margin-top: 32px; padding: 40px 0; border-top: 1px solid rgba(255,255,255,.21); font-size: 12px; line-height: 18px; }
   .legal-left { display: flex; flex-direction: column; gap: 10px; }
@@ -124,9 +135,30 @@
 
   /* One entrance on load */
   @keyframes rise { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
-  .head-block, .stage, #steps { animation: rise 400ms var(--ease) both; }
-  #steps { animation-delay: 60ms; }
+  @keyframes from-right { from { opacity: 0; transform: translateX(12px); } to { opacity: 1; transform: none; } }
+  @keyframes from-left { from { opacity: 0; transform: translateX(-12px); } to { opacity: 1; transform: none; } }
+  @keyframes fade { from { opacity: 0; } to { opacity: 1; } }
+  .head-block, .stage, .stepper, .panel .actions { animation: rise 560ms var(--ease) both; }
+  .stepper { animation-delay: 60ms; }
+  .panel .actions { animation-delay: 120ms; }
   .stage { animation-delay: 120ms; }
+  @media (hover: hover) {
+    .hlink:hover { color: var(--green-press); }
+    .hlink:hover span { background-size: 100% 1px; }
+    .hlink:hover .hicon { transform: translateY(-1px); }
+    nav.main a:hover { color: var(--green); }
+    nav.main a:hover::after { transform: scaleX(1); }
+    nav.main a:hover .chev { transform: translateY(2px); }
+    .crumbs a:hover { color: var(--green); }
+    .btn:hover { color: var(--fill-text); border-color: var(--fill); }
+    .btn:hover::before { transform: scaleX(1); transform-origin: left center; }
+    .btn.next:hover svg { transform: translateX(3px); }
+    .btn.on-dark:hover { border-color: var(--on-green); }
+    .care summary:hover { color: var(--green); }
+    .care summary:hover .plus { transform: rotate(90deg); }
+    .care details[open] summary:hover .plus { transform: rotate(135deg); }
+    footer a:hover { color: #fff; }
+  }
   @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
 
   @media (max-width: 960px) {
@@ -155,7 +187,7 @@
   .builder { display: grid; grid-template-columns: minmax(0, 1fr) var(--panel); gap: 56px; align-items: start; }
   .stage { position: sticky; top: 24px; }
   #ring-3d { position: relative; width: 100%; aspect-ratio: 1 / 1; max-height: calc(100vh - 48px); background: var(--surface); overflow: hidden; }
-  #ring-3d .status { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; padding: 24px; text-align: center; font-size: 13px; color: var(--text-3); transition: opacity 300ms var(--ease); }
+  #ring-3d .status { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; padding: 24px; text-align: center; font-size: 13px; color: var(--text-3); transition: opacity 600ms var(--ease); }
   /* Full screen: our own container, white like the store, not the viewer's black */
   #ring-3d:fullscreen { width: 100vw; height: 100vh; max-height: none; aspect-ratio: auto; background: #fff !important; }
   #ring-3d::backdrop { background: #fff; }
@@ -172,54 +204,57 @@
   /* Steps as a click-through stepper: one step on screen, no long scroll */
   .stepper { display: flex; flex-direction: column; gap: 20px; }
   .progress { display: grid; grid-template-columns: repeat(var(--n, 8), minmax(0, 1fr)); gap: 4px; }
-  .seg { display: flex; flex-direction: column; justify-content: flex-end; gap: 8px; height: 36px; padding: 0; border: 0; background: none; color: var(--text-3); font: inherit; font-size: 12px; line-height: 16px; text-align: left; font-variant-numeric: tabular-nums; cursor: pointer; transition: color 160ms var(--ease); }
-  .seg .bar { display: block; height: 2px; background: var(--line); transition: background-color 160ms var(--ease); }
-  .seg:hover { color: var(--text); }
+  .seg { display: flex; flex-direction: column; justify-content: flex-end; gap: 8px; height: 36px; padding: 0; border: 0; background: none; color: var(--text-3); font: inherit; font-size: 12px; line-height: 16px; text-align: left; font-variant-numeric: tabular-nums; cursor: pointer; transition: color var(--t-hover) var(--ease); }
+  /* Each segment fills from the left as the shopper moves forward */
+  .seg .bar { position: relative; display: block; height: 2px; padding: 0; background: var(--line); overflow: hidden; }
+  .seg .bar::after { content: ""; position: absolute; inset: 0; background: var(--green); transform: scaleX(0); transform-origin: left center; transition: transform var(--t-fill) var(--sweep), background-color var(--t-fill) var(--sweep); }
   .seg.done { color: var(--text-2); }
-  .seg.done .bar { background: #9FB2AB; }
+  .seg.done .bar::after { transform: scaleX(1); background: #9FB2AB; }
   .seg[aria-current="step"] { color: var(--green); font-weight: 500; }
-  .seg[aria-current="step"] .bar { background: var(--green); }
-  .step-panel { display: flex; flex-direction: column; gap: 16px; min-height: 208px; animation: rise 240ms var(--ease) both; }
+  .seg[aria-current="step"] .bar::after { transform: scaleX(1); background: var(--green); }
+  /* A step slides in from the side it comes from: forward from the right, back from the left */
+  .step-panel { display: flex; flex-direction: column; gap: 16px; min-height: 208px; animation: from-right var(--t-enter) var(--ease) both; }
+  #steps[data-dir="back"] .step-panel { animation-name: from-left; }
+  #steps[data-dir="none"] .step-panel { animation-name: fade; }
   .step-panel[hidden] { display: none; }
   .step-count { font-size: 12px; line-height: 16px; color: var(--text-3); }
   .step-title { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; margin-top: -8px; }
   .step-title .name { font-size: 18px; line-height: 24px; font-weight: 500; }
   .step-value { font-size: 13px; color: var(--text-2); text-align: right; }
   .step-nav { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding-top: 4px; }
-  .back { display: inline-flex; align-items: center; gap: 4px; height: 40px; padding: 0; border: 0; background: none; color: var(--text-2); font: inherit; font-size: 13px; cursor: pointer; transition: color 160ms var(--ease); }
-  .back:hover { color: var(--green); }
+  .back { display: inline-flex; align-items: center; gap: 4px; height: 40px; padding: 0; border: 0; background: none; color: var(--text-2); font: inherit; font-size: 13px; cursor: pointer; transition: color var(--t-hover) var(--ease); }
+  .back svg { transition: transform var(--t-hover) var(--ease); }
   .back[disabled] { visibility: hidden; }
   .back svg, .next svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
   button.btn.next { width: auto; height: 40px; padding: 0 16px; gap: 8px; }
   button.btn.next.final { height: 48px; padding: 0 24px; }
   button.btn.next.final svg { display: none; }
-  .mix { display: inline-flex; align-items: center; gap: 8px; font-size: 13px; color: var(--text-2); cursor: pointer; }
+  .mix { display: inline-flex; align-items: center; gap: 8px; min-height: 32px; font-size: 13px; color: var(--text-2); cursor: pointer; transition: color var(--t-hover) var(--ease); }
   .mix input { width: 16px; height: 16px; margin: 0; accent-color: var(--green); }
-  .band-metal { display: flex; flex-direction: column; gap: 12px; }
+  .band-metal { display: flex; flex-direction: column; gap: 12px; animation: rise var(--t-enter) var(--ease) both; }
   .band-metal[hidden] { display: none; }
   .review { border-top: 1px solid var(--line); }
   .review-row { display: grid; grid-template-columns: 112px minmax(0, 1fr) auto; align-items: center; gap: 12px; min-height: 40px; border-bottom: 1px solid var(--line); font-size: 13px; }
   .review-row .k { color: var(--text-3); }
   .review-row .v { color: var(--text); }
-  .review-row button { padding: 0; border: 0; background: none; color: var(--green); font: inherit; font-size: 12px; text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
+  .review-row button { padding: 8px 0; border: 0; background: none; color: var(--green); font: inherit; font-size: 12px; text-decoration: underline; text-decoration-color: rgba(9,54,47,.35); text-underline-offset: 3px; cursor: pointer; transition: text-decoration-color var(--t-hover) var(--ease), text-underline-offset var(--t-hover) var(--ease); }
+  .review-row .v { transition: opacity var(--t-hover) var(--ease); }
 
   /* Hint when the wheel scrolls the page instead of zooming */
-  .zoom-hint { position: absolute; left: 50%; bottom: 20px; transform: translate(-50%, 8px); padding: 8px 16px; background: rgba(24,27,26,.82); color: #fff; font-size: 12px; line-height: 16px; white-space: nowrap; opacity: 0; pointer-events: none; transition: opacity 200ms var(--ease), transform 200ms var(--ease); z-index: 5; }
+  .zoom-hint { position: absolute; left: 50%; bottom: 20px; transform: translate(-50%, 8px); padding: 8px 16px; background: rgba(24,27,26,.82); color: #fff; font-size: 12px; line-height: 16px; white-space: nowrap; opacity: 0; pointer-events: none; transition: opacity var(--t-enter) var(--ease), transform var(--t-enter) var(--ease); z-index: 5; }
   .zoom-hint.show { opacity: 1; transform: translate(-50%, 0); }
 
   /* Option tiles: icon above label, as on Blue Nile, in TDO style (square, green when picked) */
   .opts { display: grid; grid-template-columns: repeat(auto-fill, minmax(76px, 1fr)); gap: 8px; }
-  .tile { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; min-height: 88px; padding: 12px 4px; border: 1px solid var(--line); background: #fff; color: var(--text-2); font: inherit; font-size: 12px; line-height: 16px; text-align: center; cursor: pointer; transition: border-color 160ms var(--ease), background-color 160ms var(--ease), color 160ms var(--ease), transform 120ms var(--ease); }
-  .tile:hover { border-color: var(--text-3); color: var(--text); }
+  .tile { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; min-height: 88px; padding: 12px 4px; border: 1px solid var(--line); background: #fff; color: var(--text-2); font: inherit; font-size: 12px; line-height: 16px; text-align: center; cursor: pointer; transition: border-color var(--t-hover) var(--ease), background-color var(--t-hover) var(--ease), color var(--t-hover) var(--ease), opacity var(--t-hover) var(--ease), transform var(--t-fast) var(--ease); }
   .tile:active { transform: scale(.98); }
   .tile[aria-pressed="true"] { border-color: var(--green); background: var(--selected); color: var(--green); }
   .tile:disabled { opacity: .4; cursor: not-allowed; }
-  .tile:disabled:hover { border-color: var(--line); color: var(--text-2); }
   .tile.adjusts { border-style: dashed; }
-  .tile svg { width: 36px; height: 36px; flex: none; fill: none; stroke: currentColor; stroke-width: 1.2; stroke-linecap: round; stroke-linejoin: round; }
+  .tile svg { width: 36px; height: 36px; flex: none; fill: none; stroke: currentColor; stroke-width: 1.2; stroke-linecap: round; stroke-linejoin: round; transition: transform var(--t-fill) var(--ease); }
   .tile svg .dot { fill: currentColor; stroke: none; }
-  .tile .swatch { width: 28px; height: 28px; border-radius: 50%; border: 1px solid rgba(24,27,26,.16); box-shadow: inset 0 -6px 10px rgba(24,27,26,.08); }
-  .tile[aria-pressed="true"] .swatch { outline: 1px solid var(--green); outline-offset: 3px; }
+  .tile .swatch { width: 28px; height: 28px; border-radius: 50%; border: 1px solid rgba(24,27,26,.16); box-shadow: inset 0 -6px 10px rgba(24,27,26,.08); outline: 1px solid transparent; outline-offset: 0; transition: outline-color var(--t-hover) var(--ease), outline-offset var(--t-fill) var(--ease), transform var(--t-fill) var(--ease); }
+  .tile[aria-pressed="true"] .swatch { outline-color: var(--green); outline-offset: 3px; }
   .tile-label { max-width: 100%; overflow-wrap: anywhere; }
 
   .panel .actions { display: flex; flex-direction: column; gap: 12px; padding-top: 8px; }
@@ -227,6 +262,17 @@
   .picked { background: var(--surface); padding: 20px 24px; }
   .picked p { word-break: break-word; font-size: 14px; line-height: 22px; }
   .hint { margin: 0; font-size: 12px; line-height: 18px; color: var(--text-3); }
+  #picked-text:not([hidden]) { animation: rise var(--t-enter) var(--ease) both; }
+  @media (hover: hover) {
+    .seg:hover { color: var(--text); }
+    .back:hover { color: var(--green); }
+    .back:hover svg { transform: translateX(-3px); }
+    .mix:hover { color: var(--text); }
+    .review-row button:hover { text-decoration-color: currentColor; text-underline-offset: 5px; }
+    .tile:not(:disabled):hover { border-color: var(--text-3); color: var(--text); }
+    .tile[aria-pressed="true"]:hover { border-color: var(--green); color: var(--green); }
+    .tile:not(:disabled):hover svg, .tile:not(:disabled):hover .swatch { transform: scale(1.06); }
+  }
 
   @media (max-width: 1080px) { :root { --panel: 380px; } .builder { gap: 40px; } }
   @media (max-width: 960px) {
@@ -490,7 +536,7 @@
         text = 'Head ' + text + ' · Band ' + (bo ? bo.label : '');
       }
       var sv = step.querySelector('.step-value');
-      if (sv) sv.textContent = text;
+      if (sv && sv.textContent !== text) { var had = sv.textContent; sv.textContent = text; if (had) soften(sv); }
       var rr = stepsEl.querySelector('[data-review="' + x.axis.key + '"] .v');
       if (rr) rr.textContent = text;
       x.opts.forEach(function (opt) {
@@ -503,13 +549,22 @@
     });
   }
 
+  // A changed value fades in instead of jumping
+  var calm = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+  function soften(el) {
+    if (calm || !el.animate) return;
+    el.animate([{ opacity: 0, transform: 'translateY(3px)' }, { opacity: 1, transform: 'none' }], { duration: 420, easing: 'cubic-bezier(.22,1,.36,1)' });
+  }
+
   var current = 0, stepKeys = [], stepNames = [];
   var progressEl = document.getElementById('progress');
   var backBtn = document.getElementById('back'), nextBtn = document.getElementById('next'), nextLabel = document.getElementById('next-label');
 
   function show(i) {
     var total = stepKeys.length + 1; // option steps plus the review
-    current = Math.max(0, Math.min(i, total - 1));
+    var next = Math.max(0, Math.min(i, total - 1));
+    stepsEl.setAttribute('data-dir', next > current ? 'fwd' : next < current ? 'back' : 'none');
+    current = next;
     stepsEl.querySelectorAll('.step-panel').forEach(function (p, n) { p.hidden = n !== current; });
     progressEl.querySelectorAll('.seg').forEach(function (b, n) {
       if (n === current) b.setAttribute('aria-current', 'step'); else b.removeAttribute('aria-current');
@@ -650,7 +705,7 @@
   // Restyle the iJewel buttons over the ring in TDO style. They live in the viewer's open shadow root.
   var VIEWER_CSS = [
     '.viewer-options{background:#fff!important;border:1px solid #DDE3E0!important;border-radius:0!important;padding:4px!important;row-gap:4px!important;box-shadow:none!important;backdrop-filter:none!important}',
-    '.viewer-options button{width:40px!important;height:40px!important;min-width:40px!important;border-radius:0!important;color:#3A4A44!important;background:transparent!important;transition:background-color 160ms cubic-bezier(.22,1,.36,1),color 160ms cubic-bezier(.22,1,.36,1),transform 120ms cubic-bezier(.22,1,.36,1)!important}',
+    '.viewer-options button{width:40px!important;height:40px!important;min-width:40px!important;border-radius:0!important;color:#3A4A44!important;background:transparent!important;transition:background-color 320ms cubic-bezier(.22,1,.36,1),color 320ms cubic-bezier(.22,1,.36,1),transform 200ms cubic-bezier(.22,1,.36,1)!important}',
     '.viewer-options button:hover,.viewer-options [aria-expanded=true] button{background:#EAF1EE!important;color:#09362F!important}',
     '.viewer-options button:active{transform:scale(.96)!important}',
     '.viewer-options button[data-focus-visible=true],.viewer-options button:focus-visible{outline:2px solid #09362F!important;outline-offset:-2px!important}',
