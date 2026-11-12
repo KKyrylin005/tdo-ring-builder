@@ -28,7 +28,9 @@
   a { color: inherit; text-decoration: none; transition: color 160ms var(--ease), border-color 160ms var(--ease), background-color 160ms var(--ease); }
   :focus-visible { outline: 2px solid var(--green); outline-offset: 2px; }
   .on-green :focus-visible { outline-color: var(--on-green); }
-  .serif { font-family: 'Cormorant Garamond', serif; font-weight: 400; }
+  /* Cotta, loaded from the TDO store itself (not copied into this repo). Cormorant is the fallback. */
+  @font-face { font-family: 'Cotta'; src: url('https://xcwymc-0j.myshopify.com/cdn/shop/t/151/assets/cotta-free.otf') format('opentype'); font-weight: 400; font-style: normal; font-display: swap; }
+  .serif { font-family: 'Cotta', 'Cormorant Garamond', serif; font-weight: 400; }
   .icon { width: 16px; height: 16px; flex: none; stroke: currentColor; fill: none; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
   .wrap { max-width: 1320px; margin: 0 auto; padding: 0 32px; }
   .split { display: grid; grid-template-columns: minmax(0, 1fr) var(--side); column-gap: 64px; row-gap: 24px; }
@@ -83,14 +85,14 @@
 
   /* Before it ships */
   .band { margin-top: 96px; background: var(--green); color: var(--on-green); padding: 56px 48px; align-items: center; }
-  .band h2 { margin: 0 0 12px; font-size: 36px; line-height: 1.1; }
+  .band h2 { margin: 0 0 12px; font-size: 32px; line-height: 1.2; letter-spacing: -.5px; }
   .band p { margin: 0; max-width: 40rem; font-family: Jost, sans-serif; font-size: 16px; line-height: 26px; color: var(--on-green-2); }
 
   /* FAQ, matched to the store's "Here for you" section */
   .care { margin-top: 96px; background: #F9F9F9; }
   .care-inner { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 48px 96px; padding-top: 84px; padding-bottom: 84px; align-items: start; }
   .care-eyebrow { margin: 0 0 12px; font-family: Jost, sans-serif; font-size: 11px; line-height: 16px; letter-spacing: 2px; text-transform: uppercase; color: #0B4940; }
-  .care h2 { margin: 0 0 20px; font-size: 32px; line-height: 1.2; font-weight: 400; color: var(--text); }
+  .care h2 { margin: 0 0 20px; font-size: 30px; line-height: 1.25; letter-spacing: -.7px; font-weight: 400; color: var(--text); }
   .care-lead { margin: 0; font-size: 13px; line-height: 24px; color: #626764; }
   .care-list { border-top: 1px solid var(--text); }
   .care details { border-bottom: 1px solid #D5DCD7; }
@@ -153,7 +155,7 @@
 
   .panel { display: flex; flex-direction: column; gap: 32px; }
   .head-block { display: flex; flex-direction: column; gap: 12px; padding-bottom: 24px; border-bottom: 1px solid var(--line); }
-  .panel h1 { font-size: 40px; line-height: 1.08; text-wrap: balance; }
+  .panel h1 { font-size: 36px; line-height: 1.15; letter-spacing: -.5px; text-wrap: balance; }
   .price { display: flex; flex-direction: column; gap: 4px; margin-top: 4px; }
   .price-label { font-size: 12px; line-height: 16px; color: var(--text-3); }
   .price-value { font-size: 16px; line-height: 24px; font-weight: 500; font-variant-numeric: tabular-nums; }
@@ -190,7 +192,7 @@
     .builder { grid-template-columns: 1fr; gap: 32px; }
     .stage { position: static; }
     #ring-3d { max-height: none; }
-    .panel h1 { font-size: 34px; }
+    .panel h1 { font-size: 30px; }
   }
 </style>
 </head>
