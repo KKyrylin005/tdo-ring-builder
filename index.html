@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Build your engagement ring | The Diamond Oasis</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500&family=Jost:wght@400;500&family=Poppins:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  /* Tokens: TDO brand green as the one accent, green-tinted neutrals, 4px spacing grid */
+  :root {
+    --green: #09362F;
+    --green-press: #062821;
+    --text: #181B1A;
+    --text-2: #3A4A44;
+    --text-3: #5F6D68;
+    --line: #DDE3E0;
+    --surface: #F3F6F4;
+    --on-green: #FFFFFF;
+    --on-green-2: #D6E2DE;
+    --on-green-line: rgba(255,255,255,.16);
+    --ease: cubic-bezier(.22, 1, .36, 1);
+    --side: 360px;
+  }
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body { margin: 0; font-family: Poppins, sans-serif; font-size: 14px; line-height: 20px; color: var(--text); background: #fff; }
+  a { color: inherit; text-decoration: none; transition: color 160ms var(--ease), border-color 160ms var(--ease), background-color 160ms var(--ease); }
+  :focus-visible { outline: 2px solid var(--green); outline-offset: 2px; }
+  .on-green :focus-visible { outline-color: var(--on-green); }
+  .serif { font-family: 'Cormorant Garamond', serif; font-weight: 400; }
+  .icon { width: 16px; height: 16px; flex: none; stroke: currentColor; fill: none; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
+  .wrap { max-width: 1320px; margin: 0 auto; padding: 0 32px; }
+  .split { display: grid; grid-template-columns: minmax(0, 1fr) var(--side); column-gap: 64px; row-gap: 24px; }
+
+  /* Header */
+  .bar { background: var(--green); color: var(--on-green); text-align: center; padding: 8px 16px; font-size: 12px; line-height: 16px; letter-spacing: .08em; }
+  header { border-bottom: 1px solid var(--line); }
+  .util { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; height: 72px; font-size: 13px; }
+  .util nav { display: flex; gap: 24px; color: var(--text-2); }
+  .util nav:last-child { justify-content: flex-end; }
+  .util nav a:hover { color: var(--green); }
+  .logo { font-size: 24px; line-height: 1; letter-spacing: .14em; color: var(--green); white-space: nowrap; }
+  nav.main { display: flex; flex-wrap: wrap; justify-content: center; gap: 40px; height: 48px; align-items: center; font-size: 13px; letter-spacing: .04em; }
+  nav.main a { padding: 4px 0; border-bottom: 1px solid transparent; }
+  nav.main a:hover, nav.main a[aria-current] { border-bottom-color: var(--green); color: var(--green); }
+
+  /* Intro */
+  .crumbs { display: flex; align-items: center; gap: 8px; font-size: 12px; line-height: 16px; color: var(--text-3); padding: 24px 0 32px; }
+  .crumbs a:hover { color: var(--green); }
+  .crumbs .icon { width: 12px; height: 12px; }
+  .intro { align-items: end; margin-bottom: 32px; }
+  .intro-text { display: flex; flex-direction: column; gap: 16px; }
+  .eyebrow { font-size: 12px; line-height: 16px; letter-spacing: .16em; color: var(--green); }
+  h1 { margin: 0; font-size: 48px; line-height: 1.06; letter-spacing: -.01em; }
+  .lead { margin: 0; max-width: 36rem; font-family: Jost, sans-serif; font-size: 16px; line-height: 26px; color: var(--text-2); }
+  .actions { display: flex; flex-direction: column; gap: 12px; }
+
+  /* Buttons: square corners as in the TDO store */
+  .btn { display: flex; align-items: center; justify-content: center; gap: 10px; height: 48px; padding: 0 20px; font-size: 12px; letter-spacing: .12em; border: 1px solid var(--green); transition: background-color 160ms var(--ease), color 160ms var(--ease), border-color 160ms var(--ease), transform 120ms var(--ease); }
+  .btn:active { transform: scale(.98); }
+  .btn.primary { background: var(--green); color: var(--on-green); }
+  .btn.primary:hover { background: var(--green-press); border-color: var(--green-press); }
+  .btn.secondary { color: var(--green); background: #fff; }
+  .btn.secondary:hover { background: var(--surface); }
+  .btn.on-dark { border-color: var(--on-green); color: var(--on-green); background: transparent; }
+  .btn.on-dark:hover { background: var(--on-green); color: var(--green); }
+
+  /* Configurator: the one bright element */
+  .viewer iframe { display: block; width: 100%; height: min(800px, calc(100vh - 96px)); min-height: 640px; border: 0; background: #fff; }
+  .note { margin-top: 12px; font-size: 12px; line-height: 16px; color: var(--text-3); }
+
+  /* Choices */
+  .below { margin-top: 48px; align-items: start; }
+  .steps { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--line); }
+  .steps li { display: grid; grid-template-columns: 40px 1fr; align-items: center; min-height: 52px; padding: 12px 0; border-bottom: 1px solid var(--line); font-family: Jost, sans-serif; font-size: 15px; line-height: 22px; }
+  .num { font-family: Poppins, sans-serif; font-size: 13px; font-weight: 500; color: var(--green); font-variant-numeric: tabular-nums; }
+  .picked { background: var(--surface); padding: 24px; }
+  .picked-title { font-weight: 500; margin-bottom: 8px; }
+  .picked p { margin: 0; font-family: Jost, sans-serif; font-size: 15px; line-height: 22px; color: var(--text-2); }
+
+  /* Before it ships */
+  .band { margin-top: 96px; background: var(--green); color: var(--on-green); padding: 56px 48px; align-items: center; }
+  .band h2 { margin: 0 0 12px; font-size: 36px; line-height: 1.1; }
+  .band p { margin: 0; max-width: 40rem; font-family: Jost, sans-serif; font-size: 16px; line-height: 26px; color: var(--on-green-2); }
+
+  /* FAQ */
+  .faq { margin: 96px 0; align-items: start; }
+  .faq h2 { grid-column: 1; margin: 0 0 8px; font-size: 36px; line-height: 1.1; }
+  .faq-list { grid-column: 1; border-top: 1px solid var(--line); }
+  details { border-bottom: 1px solid var(--line); }
+  summary { display: flex; align-items: center; justify-content: space-between; gap: 16px; min-height: 60px; padding: 16px 0; cursor: pointer; list-style: none; font-weight: 500; }
+  summary::-webkit-details-marker { display: none; }
+  summary:hover { color: var(--green); }
+  summary .icon { color: var(--text-3); transition: transform 200ms var(--ease); }
+  details[open] summary .icon { transform: rotate(180deg); }
+  details p { margin: 0; padding: 0 40px 20px 0; max-width: 40rem; font-family: Jost, sans-serif; font-size: 15px; line-height: 24px; color: var(--text-2); }
+
+  /* Footer */
+  footer { background: var(--green); color: var(--on-green-2); padding: 64px 0 32px; font-size: 13px; }
+  .cols { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 32px; }
+  .cols div { display: flex; flex-direction: column; gap: 8px; }
+  .cols h3 { margin: 0 0 8px; font-size: 12px; line-height: 16px; font-weight: 500; letter-spacing: .12em; color: var(--on-green); }
+  footer a:hover { color: var(--on-green); }
+  .tel { font-variant-numeric: tabular-nums; }
+  .legal { margin-top: 56px; padding-top: 24px; border-top: 1px solid var(--on-green-line); display: flex; flex-wrap: wrap; justify-content: space-between; gap: 16px; font-size: 12px; line-height: 16px; }
+  .legal span { display: flex; flex-wrap: wrap; gap: 8px 20px; }
+
+  /* One entrance on load */
+  @keyframes rise { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+  .intro-text, .actions, .viewer { animation: rise 400ms var(--ease) both; }
+  .actions { animation-delay: 60ms; }
+  .viewer { animation-delay: 120ms; }
+  @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
+
+  @media (max-width: 960px) {
+    .wrap { padding: 0 20px; }
+    .split { grid-template-columns: 1fr; }
+    .util { grid-template-columns: 1fr; justify-items: center; height: auto; padding: 16px 0 8px; row-gap: 12px; }
+    .util nav { display: none; }
+    nav.main { gap: 24px; height: auto; padding: 8px 0 16px; }
+    h1 { font-size: 36px; }
+    .viewer iframe { height: 1080px; min-height: 0; }
+    .band { padding: 40px 24px; margin-top: 64px; }
+    .faq { margin: 64px 0; }
+    .cols { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  }
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <!-- lucide icons, 24 grid, used at 16px with a 1.5 stroke -->
+  <symbol id="i-chevron-down" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></symbol>
+  <symbol id="i-chevron-right" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></symbol>
+  <symbol id="i-message" viewBox="0 0 24 24"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/></symbol>
+  <symbol id="i-calendar" viewBox="0 0 24 24"><path d="M8 2v4"/><path d="M16 2v4"/><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18"/></symbol>
+</svg>
+
+<div class="bar">Complimentary shipping to UAE, KSA &amp; Lebanon</div>
+<header>
+  <div class="wrap util">
+    <nav aria-label="Services"><a href="#">Search</a><a href="#">Book an appointment</a><a href="#">Custom Design Studio</a></nav>
+    <a href="#" class="logo serif">THE DIAMOND OASIS ®</a>
+    <nav aria-label="Account"><a href="#">My account</a><a href="#">Shopping bag</a></nav>
+  </div>
+  <nav class="wrap main" aria-label="Main">
+    <a href="#" aria-current="page">Engagement rings</a><a href="#">Wedding rings</a><a href="#">Fine jewellery</a><a href="#">Gifts</a><a href="#">The Oasis</a>
+  </nav>
+</header>
+
+<main class="wrap">
+  <nav class="crumbs" aria-label="Breadcrumb">
+    <a href="#">Home</a><svg class="icon" aria-hidden="true"><use href="#i-chevron-right"/></svg>
+    <a href="#">Engagement rings</a><svg class="icon" aria-hidden="true"><use href="#i-chevron-right"/></svg>
+    <span aria-current="page">Build your ring</span>
+  </nav>
+
+  <section class="split intro" aria-label="About this ring">
+    <div class="intro-text">
+      <div class="eyebrow">MADE TO ORDER</div>
+      <h1 class="serif">Build your engagement ring</h1>
+      <p class="lead">Choose the diamond shape, preview carat, head, band and gold colour in 3D. Every ring is crafted to order in 18K gold.</p>
+    </div>
+    <div class="actions">
+      <a href="#" class="btn secondary"><svg class="icon" aria-hidden="true"><use href="#i-message"/></svg>CHAT ON WHATSAPP</a>
+      <a href="#" class="btn primary"><svg class="icon" aria-hidden="true"><use href="#i-calendar"/></svg>BOOK AN APPOINTMENT</a>
+    </div>
+  </section>
+
+  <section class="viewer" aria-label="Ring configurator">
+    <!-- iJewel3D: TDO MVP configurator. isAutoplay=true loads the 3D without the play button. -->
+    <iframe src="https://ijewel3d.com/drive/files/BSM4pm7dR3u23cL8-JsLRA/embedded?isAutoplay=true"
+            allow="xr-spatial-tracking; fullscreen" title="TDO MVP configurator"></iframe>
+    <div class="note">The image is for display. The final stone size depends on the diamond you choose</div>
+  </section>
+
+  <section class="split below" aria-label="Your choices">
+    <ul class="steps">
+      <li><span class="num">01</span>Diamond shape: oval, round, marquise, pear or emerald</li>
+      <li><span class="num">02</span>Preview carat: 1, 2 or 3 ct</li>
+      <li><span class="num">03</span>Head: 4 Prong or 6 Prong</li>
+      <li><span class="num">04</span>Band: Solitaire, Pavé or Twisted</li>
+      <li><span class="num">05</span>White, yellow or rose gold for the head and the band</li>
+    </ul>
+    <div class="picked" aria-live="polite">
+      <div class="picked-title">Your ring</div>
+      <p id="picked-text">Make your choices in the configurator and press Add to cart</p>
+    </div>
+  </section>
+
+  <section class="split band on-green" aria-label="See your ring before it ships">
+    <div>
+      <h2 class="serif">See your ring before it ships</h2>
+      <p>We share photographs and videos of your finished ring before dispatch. Your specialist coordinates delivery and stays in touch until your ring reaches you.</p>
+    </div>
+    <a href="#" class="btn on-dark"><svg class="icon" aria-hidden="true"><use href="#i-calendar"/></svg>BOOK AN APPOINTMENT</a>
+  </section>
+
+  <section class="split faq" aria-label="Delivery, sizing, warranty and returns">
+    <h2 class="serif">Here for you</h2>
+    <div class="faq-list">
+      <details open><summary>Delivery &amp; shipping<svg class="icon" aria-hidden="true"><use href="#i-chevron-down"/></svg></summary>
+        <p>Complimentary shipping to the UAE, KSA and Lebanon. Engagement rings arrive in an estimated 7-10 calendar days in the UAE and 10-14 calendar days elsewhere, crafting and shipping included.</p></details>
+      <details><summary>Ring sizing &amp; complimentary resizing<svg class="icon" aria-hidden="true"><use href="#i-chevron-down"/></svg></summary>
+        <p>One complimentary resize within 60 days of purchase, with shipping both ways covered.</p></details>
+      <details><summary>Craftsmanship warranty &amp; aftercare<svg class="icon" aria-hidden="true"><use href="#i-chevron-down"/></svg></summary>
+        <p>Contact us within 7 days of receipt about any manufacturing concern. After inspection we repair or replace the piece and cover shipping both ways.</p></details>
+      <details><summary>Returns &amp; made-to-order purchases<svg class="icon" aria-hidden="true"><use href="#i-chevron-down"/></svg></summary>
+        <p>Rings built here are made to order, so they are not eligible for change-of-mind returns. Our team is happy to help you choose with confidence before you order.</p></details>
+    </div>
+  </section>
+</main>
+
+<footer class="on-green">
+  <div class="wrap">
+    <div class="cols">
+      <div><h3>SHOP</h3><a href="#">Engagement Rings</a><a href="#">Wedding Rings</a><a href="#">Ring Sets</a><a href="#">Earrings</a><a href="#">Bracelets</a><a href="#">Necklaces</a><a href="#">Custom Design Studio</a></div>
+      <div><h3>CLIENT CARE</h3><a href="#">Chat on WhatsApp</a><a href="#">Book an appointment</a><a href="#">Shipping &amp; delivery</a><a href="#">Returns &amp; Warranty</a><a href="#">Diamond Guides</a></div>
+      <div><h3>CONTACT US</h3><span class="tel">UAE &amp; KSA +971 58 536 3996</span><span class="tel">Lebanon +961 76 181 986</span><a href="#">clientcare@thediamondoasis.com</a></div>
+      <div><h3>THE DIAMOND OASIS</h3><a href="#">Our Story</a><a href="#">Google reviews</a><a href="#">Trustpilot reviews</a></div>
+    </div>
+    <div class="legal">
+      <span>© 2026 The Diamond Oasis<a href="#">Privacy policy</a><a href="#">Warranty &amp; Policies</a></span>
+      <span><a href="#">Instagram</a><a href="#">Pinterest</a><a href="#">TikTok</a></span>
+    </div>
+  </div>
+</footer>
+
+<script>
+  // iJewel configurator: the shopper clicked Add to cart (block 2 of the iJewel embed code).
+  // On Shopify this is where the design goes into the cart; here it only shows what was picked.
+  window.addEventListener('message', function (event) {
+    if (event.origin !== 'https://ijewel3d.com') return;
+    var message = event.data;
+    if (!message || message.source !== 'ijewel' || message.event !== 'cart:requested') return;
+    var design = message.data || {};
+    var labels = design.labels;
+    if (labels && typeof labels === 'object' && !Array.isArray(labels)) {
+      labels = Object.keys(labels).map(function (k) { return k + ': ' + labels[k]; });
+    }
+    var parts = [];
+    if (design.title) parts.push(design.title);
+    if (Array.isArray(labels)) parts.push(labels.join(', '));
+    if (design.price != null) parts.push('Price: ' + design.price);
+    document.getElementById('picked-text').textContent = parts.join(' · ') || 'Design received';
+  });
+</script>
+</body>
+</html>
