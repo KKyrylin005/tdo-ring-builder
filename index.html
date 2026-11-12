@@ -152,6 +152,7 @@
   .stage { position: sticky; top: 24px; }
   #ring-3d { position: relative; width: 100%; aspect-ratio: 1 / 1; max-height: calc(100vh - 48px); background: var(--surface); overflow: hidden; }
   #ring-3d .status { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; padding: 24px; text-align: center; font-size: 13px; color: var(--text-3); transition: opacity 300ms var(--ease); }
+  #ring-3d:fullscreen, #ring-3d :fullscreen, :fullscreen::backdrop { background: #fff !important; }
   #ring-3d.ready .status { opacity: 0; pointer-events: none; }
 
   .panel { display: flex; flex-direction: column; gap: 32px; }
@@ -492,6 +493,8 @@
     '.viewer-options button:active{transform:scale(.96)!important}',
     '.viewer-options button[data-focus-visible=true],.viewer-options button:focus-visible{outline:2px solid #09362F!important;outline-offset:-2px!important}',
     '.viewer-options button svg{width:18px!important;height:18px!important}',
+    ':fullscreen,:fullscreen #webgi-wrapper,:fullscreen #webgi-canvas-container{background:#fff!important}',
+    ':fullscreen::backdrop{background:#fff!important}',
     '.viewer-options button svg *:not([fill=none]){fill:currentColor!important}',
     '.viewer-options button svg [stroke]:not([stroke=none]){stroke:currentColor!important}'
   ].join('');
