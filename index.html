@@ -187,6 +187,8 @@
   .back[disabled] { visibility: hidden; }
   .back svg, .next svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
   button.btn.next { width: auto; height: 40px; padding: 0 16px; gap: 8px; }
+  button.btn.next.final { height: 48px; padding: 0 24px; }
+  button.btn.next.final svg { display: none; }
   .mix { display: inline-flex; align-items: center; gap: 8px; font-size: 13px; color: var(--text-2); cursor: pointer; }
   .mix input { width: 16px; height: 16px; margin: 0; accent-color: var(--green); }
   .band-metal { display: flex; flex-direction: column; gap: 12px; }
@@ -302,7 +304,6 @@
       </div>
 
       <div class="actions">
-        <button type="button" class="btn primary" id="select-btn">SELECT THIS RING</button>
         <a href="#" class="btn secondary"><svg class="icon" aria-hidden="true"><use href="#i-message"/></svg>CHAT ON WHATSAPP</a>
       </div>
     </div>
@@ -506,11 +507,15 @@
     });
     backBtn.disabled = current === 0;
     var last = current === total - 1;
-    nextBtn.hidden = last;
-    if (!last) nextLabel.textContent = 'NEXT: ' + (current + 1 < stepKeys.length ? stepNames[current + 1] : 'REVIEW').toUpperCase();
+    nextBtn.classList.toggle('primary', last);
+    nextBtn.classList.toggle('secondary', !last);
+    nextBtn.classList.toggle('final', last);
+    nextLabel.textContent = last ? 'SELECT THIS RING' : 'NEXT: ' + (current + 1 < stepKeys.length ? stepNames[current + 1] : 'REVIEW').toUpperCase();
   }
   backBtn.addEventListener('click', function () { show(current - 1); });
-  nextBtn.addEventListener('click', function () { show(current + 1); });
+  nextBtn.addEventListener('click', function () {
+    if (current === stepKeys.length) selectRing(); else show(current + 1);
+  });
 
   var mixMetals = false;
   function tileFor(axis, opt, onPick) {
@@ -615,7 +620,7 @@
     var review = document.createElement('div');
     review.className = 'step-panel';
     review.hidden = true;
-    review.innerHTML = '<div class="step-count">Step ' + total + ' of ' + total + '</div><div class="step-title"><span class="name">Your ring</span></div><div class="review"></div><p class="hint" id="picked-text">Choose Select this ring to continue</p>';
+    review.innerHTML = '<div class="step-count">Step ' + total + ' of ' + total + '</div><div class="step-title"><span class="name">Your ring</span></div><div class="review"></div><p class="hint" id="picked-text" hidden></p>';
     var rv = review.querySelector('.review');
     list.forEach(function (x, i) {
       var r = document.createElement('div');
@@ -744,14 +749,16 @@
       wheelScrollsPage(document.getElementById('ring-3d'));
     }).catch(fail);
 
-    document.getElementById('select-btn').addEventListener('click', function () {
+    window.selectRing = function () {
       if (!session) return;
       // On Shopify this is where the configuration goes into the cart. Here it shows what would be sent.
       var conf = session.configuration();
       var link = location.origin + location.pathname + '?id=' + CONFIG.id + '&state=' + encodeURIComponent(session.stateString());
-      document.getElementById('picked-text').textContent = summary() + (conf && conf.sku ? ' · SKU ' + conf.sku : '');
+      var note = document.getElementById('picked-text');
+      note.hidden = false;
+      note.textContent = 'Saved. On the store this ring goes to your bag' + (conf && conf.sku ? ' · SKU ' + conf.sku : '');
       try { history.replaceState(null, '', link); } catch (e) {}
-    });
+    };
   })();
 </script>
 </body>
