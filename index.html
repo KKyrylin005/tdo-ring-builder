@@ -165,18 +165,33 @@
   .price-label { font-size: 12px; line-height: 16px; color: var(--text-3); }
   .price-value { font-size: 16px; line-height: 24px; font-weight: 500; font-variant-numeric: tabular-nums; }
 
-  /* Steps as an accordion: one open at a time keeps the panel about as tall as the 3D view */
-  #steps { display: flex; flex-direction: column; border-top: 1px solid var(--line); }
-  .step { border-bottom: 1px solid var(--line); }
-  .step-head { display: flex; align-items: center; gap: 12px; width: 100%; min-height: 56px; padding: 0; border: 0; background: none; color: var(--text); font: inherit; text-align: left; cursor: pointer; }
-  .step-head:hover .name { color: var(--green); }
-  .step-head .num { width: 24px; flex: none; }
-  .step-head .name { flex: 1; font-weight: 500; transition: color 160ms var(--ease); }
+  /* Steps as a click-through stepper: one step on screen, no long scroll */
+  .stepper { display: flex; flex-direction: column; gap: 20px; }
+  .progress { display: grid; grid-template-columns: repeat(var(--n, 8), minmax(0, 1fr)); gap: 4px; }
+  .seg { display: flex; flex-direction: column; justify-content: flex-end; gap: 8px; height: 36px; padding: 0; border: 0; background: none; color: var(--text-3); font: inherit; font-size: 12px; line-height: 16px; text-align: left; font-variant-numeric: tabular-nums; cursor: pointer; transition: color 160ms var(--ease); }
+  .seg .bar { display: block; height: 2px; background: var(--line); transition: background-color 160ms var(--ease); }
+  .seg:hover { color: var(--text); }
+  .seg.done { color: var(--text-2); }
+  .seg.done .bar { background: #9FB2AB; }
+  .seg[aria-current="step"] { color: var(--green); font-weight: 500; }
+  .seg[aria-current="step"] .bar { background: var(--green); }
+  .step-panel { display: flex; flex-direction: column; gap: 16px; min-height: 208px; animation: rise 240ms var(--ease) both; }
+  .step-panel[hidden] { display: none; }
+  .step-count { font-size: 12px; line-height: 16px; color: var(--text-3); }
+  .step-title { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; margin-top: -8px; }
+  .step-title .name { font-size: 18px; line-height: 24px; font-weight: 500; }
   .step-value { font-size: 13px; color: var(--text-2); text-align: right; }
-  .step-head .chev { width: 16px; height: 16px; flex: none; fill: none; stroke: var(--text-3); stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; transition: transform 200ms var(--ease); }
-  .step-head[aria-expanded="true"] .chev { transform: rotate(180deg); }
-  .step-body { padding: 4px 0 20px; animation: rise 240ms var(--ease) both; }
-  .step-body[hidden] { display: none; }
+  .step-nav { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding-top: 4px; }
+  .back { display: inline-flex; align-items: center; gap: 4px; height: 40px; padding: 0; border: 0; background: none; color: var(--text-2); font: inherit; font-size: 13px; cursor: pointer; transition: color 160ms var(--ease); }
+  .back:hover { color: var(--green); }
+  .back[disabled] { visibility: hidden; }
+  .back svg, .next svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
+  button.btn.next { width: auto; height: 40px; padding: 0 16px; gap: 8px; }
+  .review { border-top: 1px solid var(--line); }
+  .review-row { display: grid; grid-template-columns: 112px minmax(0, 1fr) auto; align-items: center; gap: 12px; min-height: 40px; border-bottom: 1px solid var(--line); font-size: 13px; }
+  .review-row .k { color: var(--text-3); }
+  .review-row .v { color: var(--text); }
+  .review-row button { padding: 0; border: 0; background: none; color: var(--green); font: inherit; font-size: 12px; text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
 
   /* Hint when the wheel scrolls the page instead of zooming */
   .zoom-hint { position: absolute; left: 50%; bottom: 20px; transform: translate(-50%, 8px); padding: 8px 16px; background: rgba(24,27,26,.82); color: #fff; font-size: 12px; line-height: 16px; white-space: nowrap; opacity: 0; pointer-events: none; transition: opacity 200ms var(--ease), transform 200ms var(--ease); z-index: 5; }
@@ -273,18 +288,19 @@
         <div class="price"><span class="price-label">Setting price</span><span class="price-value" id="price">Confirmed by your specialist</span></div>
       </div>
 
-      <div id="steps"></div>
+      <div class="stepper">
+        <nav class="progress" id="progress" aria-label="Steps"></nav>
+        <div id="steps" aria-live="polite"></div>
+        <div class="step-nav">
+          <button type="button" class="back" id="back"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>Back</button>
+          <button type="button" class="btn secondary next" id="next"><span id="next-label">NEXT</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></button>
+        </div>
+      </div>
 
       <div class="actions">
         <button type="button" class="btn primary" id="select-btn">SELECT THIS SETTING</button>
         <a href="#" class="btn secondary"><svg class="icon" aria-hidden="true"><use href="#i-message"/></svg>CHAT ON WHATSAPP</a>
       </div>
-
-      <div class="picked" aria-live="polite">
-        <div class="picked-title">Your ring</div>
-        <p id="picked-text">Choose your options above</p>
-      </div>
-      <p class="hint">Every ring is crafted to order in 18K gold. Book an appointment to see options in person</p>
     </div>
   </section>
 
@@ -452,6 +468,8 @@
       var step = stepsEl.querySelector('[data-axis="' + x.axis.key + '"]');
       var current = x.opts.filter(function (o) { return o.state === 'selected'; })[0];
       step.querySelector('.step-value').textContent = current ? current.label : '';
+      var rr = stepsEl.querySelector('[data-review="' + x.axis.key + '"] .v');
+      if (rr) rr.textContent = current ? current.label : '';
       x.opts.forEach(function (opt) {
         var b = step.querySelector('[data-opt="' + CSS.escape(opt.key) + '"]');
         b.setAttribute('aria-pressed', opt.state === 'selected' ? 'true' : 'false');
@@ -462,34 +480,54 @@
     });
   }
 
-  var openAxis = null;
-  function setOpen(key) {
-    openAxis = key;
-    stepsEl.querySelectorAll('.step').forEach(function (st) {
-      var isOpen = st.getAttribute('data-axis') === key;
-      st.querySelector('.step-head').setAttribute('aria-expanded', isOpen ? 'true' : 'false');
-      st.querySelector('.step-body').hidden = !isOpen;
+  var current = 0, stepKeys = [], stepNames = [];
+  var progressEl = document.getElementById('progress');
+  var backBtn = document.getElementById('back'), nextBtn = document.getElementById('next'), nextLabel = document.getElementById('next-label');
+
+  function show(i) {
+    var total = stepKeys.length + 1; // option steps plus the review
+    current = Math.max(0, Math.min(i, total - 1));
+    stepsEl.querySelectorAll('.step-panel').forEach(function (p, n) { p.hidden = n !== current; });
+    progressEl.querySelectorAll('.seg').forEach(function (b, n) {
+      if (n === current) b.setAttribute('aria-current', 'step'); else b.removeAttribute('aria-current');
+      b.classList.toggle('done', n < current);
     });
+    backBtn.disabled = current === 0;
+    var last = current === total - 1;
+    nextBtn.hidden = last;
+    if (!last) nextLabel.textContent = 'NEXT: ' + (current + 1 < stepKeys.length ? stepNames[current + 1] : 'REVIEW').toUpperCase();
   }
+  backBtn.addEventListener('click', function () { show(current - 1); });
+  nextBtn.addEventListener('click', function () { show(current + 1); });
 
   function build(list) {
     stepsEl.innerHTML = '';
+    progressEl.innerHTML = '';
+    stepKeys = list.map(function (x) { return x.axis.key; });
+    stepNames = list.map(function (x) { return AXES[x.axis.key] || x.axis.label; });
+    progressEl.style.setProperty('--n', list.length + 1);
+    var total = list.length + 1;
+    function seg(label, idx, title) {
+      var b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'seg';
+      b.innerHTML = '<span></span><span class="bar"></span>';
+      b.firstChild.textContent = label;
+      b.title = title;
+      b.setAttribute('aria-label', 'Step ' + (idx + 1) + ': ' + title);
+      b.addEventListener('click', function () { show(idx); });
+      progressEl.appendChild(b);
+    }
     list.forEach(function (x, i) {
-      var axis = x.axis, name = AXES[axis.key] || axis.label;
+      var axis = x.axis, name = stepNames[i];
+      seg(String(i + 1).padStart(2, '0'), i, name);
       var step = document.createElement('div');
-      step.className = 'step';
+      step.className = 'step step-panel';
       step.setAttribute('data-axis', axis.key);
-      var bodyId = 'step-body-' + axis.key;
-      step.innerHTML = '<button type="button" class="step-head" aria-expanded="false" aria-controls="' + bodyId + '"><span class="num"></span><span class="name"></span><span class="step-value"></span><svg class="chev" viewBox="0 0 16 16" aria-hidden="true"><path d="m4 6 4 4 4-4"/></svg></button>';
-      step.querySelector('.num').textContent = String(i + 1).padStart(2, '0');
+      step.hidden = true;
+      step.innerHTML = '<div class="step-count"></div><div class="step-title"><span class="name"></span><span class="step-value"></span></div>';
+      step.querySelector('.step-count').textContent = 'Step ' + (i + 1) + ' of ' + total;
       step.querySelector('.name').textContent = name;
-      step.querySelector('.step-head').addEventListener('click', function () {
-        setOpen(openAxis === axis.key ? null : axis.key);
-      });
-      var body = document.createElement('div');
-      body.className = 'step-body';
-      body.id = bodyId;
-      body.hidden = true;
       var row = document.createElement('div');
       row.className = 'opts';
       row.setAttribute('role', 'group');
@@ -512,12 +550,28 @@
         });
         row.appendChild(b);
       });
-      body.appendChild(row);
-      step.appendChild(body);
+      step.appendChild(row);
       stepsEl.appendChild(step);
     });
-    var keys = list.map(function (x) { return x.axis.key; });
-    setOpen(keys.indexOf(openAxis) > -1 ? openAxis : keys[0]);
+    // Review: every choice in one list, each one a click away from its step
+    seg('\u2713', list.length, 'Review');
+    var review = document.createElement('div');
+    review.className = 'step-panel';
+    review.hidden = true;
+    review.innerHTML = '<div class="step-count">Step ' + total + ' of ' + total + '</div><div class="step-title"><span class="name">Your ring</span></div><div class="review"></div><p class="hint" id="picked-text">Choose Select this setting to continue</p>';
+    var rv = review.querySelector('.review');
+    list.forEach(function (x, i) {
+      var r = document.createElement('div');
+      r.className = 'review-row';
+      r.setAttribute('data-review', x.axis.key);
+      r.innerHTML = '<span class="k"></span><span class="v"></span><button type="button">Change</button>';
+      r.querySelector('.k').textContent = stepNames[i];
+      r.querySelector('button').setAttribute('aria-label', 'Change ' + stepNames[i]);
+      r.querySelector('button').addEventListener('click', function () { show(i); });
+      rv.appendChild(r);
+    });
+    stepsEl.appendChild(review);
+    show(Math.min(current, total - 1));
   }
 
 
@@ -621,10 +675,8 @@
       render();
       session.on('selection:changed', function () {
         render();
-        document.getElementById('picked-text').textContent = summary();
       });
       session.on('error', function (e) { console.warn('configurator', e); });
-      document.getElementById('picked-text').textContent = summary();
       return api.mountViewer(document.getElementById('ring-3d'), session, {
         background: '#F3F6F4', camera: 'fit', tryOn: false,
         onError: function (e) { console.warn('viewer', e); }
