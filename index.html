@@ -238,9 +238,20 @@
   button.btn.next.final { height: 48px; padding: 0 24px; }
   button.btn.next.final svg { display: none; }
   .mix { display: inline-flex; align-items: center; gap: 8px; min-height: 32px; font-size: 13px; color: var(--text-2); cursor: pointer; transition: color var(--t-hover) var(--ease); }
-  .mix input { width: 16px; height: 16px; margin: 0; accent-color: var(--green); }
-  .band-metal { display: flex; flex-direction: column; gap: 12px; animation: rise var(--t-enter) var(--ease) both; }
-  .band-metal[hidden] { display: none; }
+  /* Our own checkbox: the box fills green and the tick draws in */
+  .mix input { appearance: none; -webkit-appearance: none; display: grid; place-content: center; width: 18px; height: 18px; margin: 0; border: 1px solid var(--text-3); background: #fff; cursor: pointer; transition: background-color var(--t-hover) var(--ease), border-color var(--t-hover) var(--ease), transform var(--t-fast) var(--ease); }
+  .mix input::after { content: ""; width: 9px; height: 5px; border-left: 1.5px solid #fff; border-bottom: 1.5px solid #fff; transform: translateY(-1px) rotate(-45deg) scale(0); transition: transform var(--t-hover) var(--ease); }
+  .mix input:checked { background: var(--green); border-color: var(--green); }
+  .mix input:checked::after { transform: translateY(-1px) rotate(-45deg) scale(1); transition-delay: 60ms; }
+  .mix input:active { transform: scale(.92); }
+  .mix input:focus-visible { outline: 2px solid var(--green); outline-offset: 2px; }
+  /* Band metal row opens and closes by height; its tiles come in one after another */
+  .band-metal { display: grid; grid-template-rows: 0fr; margin-top: -16px; opacity: 0; transition: grid-template-rows var(--t-fill) var(--sweep), margin-top var(--t-fill) var(--sweep), opacity var(--t-enter) var(--ease); }
+  .band-metal.open { grid-template-rows: 1fr; margin-top: 0; opacity: 1; }
+  .band-metal-inner { display: flex; flex-direction: column; gap: 12px; min-height: 0; overflow: hidden; padding: 3px; margin: -3px; }
+  @keyframes tile-in { from { opacity: 0; transform: translateY(8px) scale(.96); } to { opacity: 1; transform: none; } }
+  .band-metal.open .tile { animation: tile-in var(--t-fill) var(--ease) both; animation-delay: calc(140ms + var(--i, 0) * 70ms); }
+  .band-metal.open .step-count { animation: fade var(--t-enter) var(--ease) both; animation-delay: 80ms; }
   .review { border-top: 1px solid var(--line); }
   .review-row { display: grid; grid-template-columns: 112px minmax(0, 1fr) auto; align-items: center; gap: 12px; min-height: 40px; border-bottom: 1px solid var(--line); font-size: 13px; }
   .review-row .k { color: var(--text-3); }
@@ -276,6 +287,7 @@
     .back:hover { color: var(--green); }
     .back:hover svg { transform: translateX(-3px); }
     .mix:hover { color: var(--text); }
+    .mix:hover input:not(:checked) { border-color: var(--green); }
     .review-row button:hover { text-decoration-color: currentColor; text-underline-offset: 5px; }
     .tile:not(:disabled):hover { border-color: var(--text-3); color: var(--text); }
     .tile[aria-pressed="true"]:hover { border-color: var(--green); color: var(--green); }
@@ -664,21 +676,28 @@
         var bandRow = document.createElement('div');
         bandRow.className = 'band-metal';
         bandRow.setAttribute('data-axis', 'shankMetal');
-        bandRow.hidden = !mixMetals;
-        bandRow.innerHTML = '<div class="step-count">Band metal</div>';
+        bandRow.innerHTML = '<div class="band-metal-inner"><div class="step-count">Band metal</div></div>';
+        function openBand(on) {
+          bandRow.classList.toggle('open', on);
+          bandRow.inert = !on;
+          bandRow.setAttribute('aria-hidden', on ? 'false' : 'true');
+        }
+        openBand(mixMetals);
         var brow = document.createElement('div');
         brow.className = 'opts';
         brow.setAttribute('role', 'group');
         brow.setAttribute('aria-label', 'Band metal');
-        bandMetal.opts.forEach(function (opt) {
-          brow.appendChild(tileFor(bandMetal.axis, opt, function () {
+        bandMetal.opts.forEach(function (opt, n) {
+          var t = tileFor(bandMetal.axis, opt, function () {
             session.select('shankMetal', opt.key).catch(function (e) { console.warn(e); });
-          }));
+          });
+          t.style.setProperty('--i', n);
+          brow.appendChild(t);
         });
-        bandRow.appendChild(brow);
+        bandRow.firstChild.appendChild(brow);
         box.addEventListener('change', function () {
           mixMetals = box.checked;
-          bandRow.hidden = !mixMetals;
+          openBand(mixMetals);
           var sel = session.selection();
           if (!mixMetals && sel.headMetal !== sel.shankMetal) session.select('shankMetal', sel.headMetal).catch(function (e) { console.warn(e); });
           else render();
