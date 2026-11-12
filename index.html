@@ -152,7 +152,10 @@
   .stage { position: sticky; top: 24px; }
   #ring-3d { position: relative; width: 100%; aspect-ratio: 1 / 1; max-height: calc(100vh - 48px); background: var(--surface); overflow: hidden; }
   #ring-3d .status { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; padding: 24px; text-align: center; font-size: 13px; color: var(--text-3); transition: opacity 300ms var(--ease); }
-  #ring-3d:fullscreen, #ring-3d :fullscreen, :fullscreen::backdrop { background: #fff !important; }
+  /* Full screen: our own container, white like the store, not the viewer's black */
+  #ring-3d:fullscreen { width: 100vw; height: 100vh; max-height: none; aspect-ratio: auto; background: #fff !important; }
+  #ring-3d::backdrop { background: #fff; }
+  #ring-3d :fullscreen { background: #fff !important; }
   #ring-3d.ready .status { opacity: 0; pointer-events: none; }
 
   .panel { display: flex; flex-direction: column; gap: 32px; }
@@ -511,12 +514,27 @@
       root.appendChild(st);
     }
     labelViewerButtons(root);
+    takeOverFullScreen(root, container);
     if (!root.__tdoObserved) {
       // The viewer re-renders its buttons, so labels are reapplied whenever they change.
       new MutationObserver(function () { labelViewerButtons(root); }).observe(root, { childList: true, subtree: true });
       root.__tdoObserved = true;
     }
     return root.querySelectorAll('.viewer-options button').length > 0;
+  }
+  // The viewer's full screen button opens our container instead, so the background stays white.
+  function takeOverFullScreen(root, container) {
+    if (root.__tdoFullScreen) return;
+    root.__tdoFullScreen = true;
+    root.addEventListener('click', function (e) {
+      var b = e.target.closest && e.target.closest('.viewer-options button');
+      if (!b || b.getAttribute('aria-label') !== 'Full screen') return;
+      if (!container.requestFullscreen) return;
+      e.preventDefault();
+      e.stopImmediatePropagation();
+      if (document.fullscreenElement) document.exitFullscreen();
+      else container.requestFullscreen().catch(function (err) { console.warn('full screen', err); });
+    }, true);
   }
   function labelViewerButtons(root) {
     root.querySelectorAll('.viewer-options button').forEach(function (b, i) {
