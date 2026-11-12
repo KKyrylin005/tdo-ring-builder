@@ -86,27 +86,37 @@
   .band h2 { margin: 0 0 12px; font-size: 36px; line-height: 1.1; }
   .band p { margin: 0; max-width: 40rem; font-family: Jost, sans-serif; font-size: 16px; line-height: 26px; color: var(--on-green-2); }
 
-  /* FAQ */
-  .faq { margin: 96px 0; align-items: start; }
-  .faq h2 { grid-column: 1; margin: 0 0 8px; font-size: 36px; line-height: 1.1; }
-  .faq-list { grid-column: 1; border-top: 1px solid var(--line); }
-  details { border-bottom: 1px solid var(--line); }
-  summary { display: flex; align-items: center; justify-content: space-between; gap: 16px; min-height: 60px; padding: 16px 0; cursor: pointer; list-style: none; font-weight: 500; }
-  summary::-webkit-details-marker { display: none; }
-  summary:hover { color: var(--green); }
-  summary .icon { color: var(--text-3); transition: transform 200ms var(--ease); }
-  details[open] summary .icon { transform: rotate(180deg); }
-  details p { margin: 0; padding: 0 40px 20px 0; max-width: 40rem; font-family: Jost, sans-serif; font-size: 15px; line-height: 24px; color: var(--text-2); }
+  /* FAQ, matched to the store's "Here for you" section */
+  .care { margin-top: 96px; background: #F9F9F9; }
+  .care-inner { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 48px 96px; padding-top: 84px; padding-bottom: 84px; align-items: start; }
+  .care-eyebrow { margin: 0 0 12px; font-family: Jost, sans-serif; font-size: 11px; line-height: 16px; letter-spacing: 2px; text-transform: uppercase; color: #0B4940; }
+  .care h2 { margin: 0 0 20px; font-size: 32px; line-height: 1.2; font-weight: 400; color: var(--text); }
+  .care-lead { margin: 0; font-size: 13px; line-height: 24px; color: #626764; }
+  .care-list { border-top: 1px solid var(--text); }
+  .care details { border-bottom: 1px solid #D5DCD7; }
+  .care summary { display: flex; align-items: center; justify-content: space-between; gap: 16px; min-height: 52px; padding: 16px 0; cursor: pointer; list-style: none; font-size: 12px; line-height: 18px; font-weight: 400; color: var(--text); }
+  .care summary::-webkit-details-marker { display: none; }
+  .care summary:hover { color: var(--green); }
+  .care .plus { position: relative; width: 12px; height: 12px; flex: none; transition: transform 200ms var(--ease); }
+  .care .plus::before, .care .plus::after { content: ""; position: absolute; left: 0; top: 5.5px; width: 12px; height: 1px; background: currentColor; }
+  .care .plus::after { transform: rotate(90deg); }
+  .care details[open] .plus { transform: rotate(45deg); }
+  .care details p { margin: 0 0 16px; padding-right: 32px; font-size: 12px; line-height: 23px; color: #626764; }
+  .care details p:last-child { margin-bottom: 20px; }
 
-  /* Footer */
-  footer { background: var(--green); color: var(--on-green-2); padding: 64px 0 32px; font-size: 13px; }
+  /* Footer, matched to the store */
+  footer { margin-top: 0; background: #08362F; color: #CBD8D2; padding-top: 60px; font-family: Jost, sans-serif; font-size: 13px; line-height: 20px; }
   .cols { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 32px; }
-  .cols div { display: flex; flex-direction: column; gap: 8px; }
-  .cols h3 { margin: 0 0 8px; font-size: 12px; line-height: 16px; font-weight: 500; letter-spacing: .12em; color: var(--on-green); }
-  footer a:hover { color: var(--on-green); }
-  .tel { font-variant-numeric: tabular-nums; }
-  .legal { margin-top: 56px; padding-top: 24px; border-top: 1px solid var(--on-green-line); display: flex; flex-wrap: wrap; justify-content: space-between; gap: 16px; font-size: 12px; line-height: 16px; }
-  .legal span { display: flex; flex-wrap: wrap; gap: 8px 20px; }
+  .cols div { display: flex; flex-direction: column; gap: 10px; }
+  .cols h3 { margin: 0 0 6px; font-size: 15px; line-height: 21px; font-weight: 500; letter-spacing: 0; text-transform: uppercase; color: #fff; }
+  footer a { color: #CBD8D2; }
+  footer a:hover { color: #fff; }
+  .tel { display: flex; gap: 8px; font-variant-numeric: tabular-nums; }
+  .legal { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; margin-top: 32px; padding: 40px 0; border-top: 1px solid rgba(255,255,255,.21); font-size: 12px; line-height: 18px; }
+  .legal-left { display: flex; flex-direction: column; gap: 10px; }
+  .legal-left .links { display: flex; flex-wrap: wrap; gap: 24px; font-size: 13px; }
+  .legal img { display: block; width: 75px; height: 40px; }
+  .legal .social { display: flex; justify-content: flex-end; gap: 20px; font-size: 13px; }
 
   /* One entrance on load */
   @keyframes rise { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
@@ -126,8 +136,11 @@
     nav.main a { white-space: nowrap; }
     h1 { font-size: 36px; }
     .band { padding: 40px 24px; margin-top: 64px; }
-    .faq { margin: 64px 0; }
+    .care { margin-top: 64px; }
+    .care-inner { grid-template-columns: 1fr; padding-top: 56px; padding-bottom: 56px; }
     .cols { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .legal { grid-template-columns: 1fr; justify-items: start; gap: 24px; }
+    .legal .social { justify-content: flex-start; }
   }
 
   /* Builder: our panel drives the iJewel 3D view */
@@ -265,32 +278,40 @@
     <a href="#" class="btn on-dark"><svg class="icon" aria-hidden="true"><use href="#i-calendar"/></svg>BOOK AN APPOINTMENT</a>
   </section>
 
-  <section class="split faq" aria-label="Delivery, sizing, warranty and returns">
-    <h2 class="serif">Here for you</h2>
-    <div class="faq-list">
-      <details open><summary>Delivery &amp; shipping<svg class="icon" aria-hidden="true"><use href="#i-chevron-down"/></svg></summary>
-        <p>Complimentary shipping to the UAE, KSA and Lebanon. Engagement rings arrive in an estimated 7-10 calendar days in the UAE and 10-14 calendar days elsewhere, crafting and shipping included.</p></details>
-      <details><summary>Ring sizing &amp; complimentary resizing<svg class="icon" aria-hidden="true"><use href="#i-chevron-down"/></svg></summary>
-        <p>One complimentary resize within 60 days of purchase, with shipping both ways covered.</p></details>
-      <details><summary>Craftsmanship warranty &amp; aftercare<svg class="icon" aria-hidden="true"><use href="#i-chevron-down"/></svg></summary>
-        <p>Contact us within 7 days of receipt about any manufacturing concern. After inspection we repair or replace the piece and cover shipping both ways.</p></details>
-      <details><summary>Returns &amp; made-to-order purchases<svg class="icon" aria-hidden="true"><use href="#i-chevron-down"/></svg></summary>
-        <p>Rings built here are made to order, so they are not eligible for change-of-mind returns. Our team is happy to help you choose with confidence before you order.</p></details>
-    </div>
-  </section>
 </main>
+
+<section class="care" aria-labelledby="care-title">
+  <div class="wrap care-inner">
+    <div>
+      <p class="care-eyebrow">Here for you, beyond the moment</p>
+      <h2 class="serif" id="care-title">A little reassurance.<br>A lot of peace of mind.</h2>
+      <p class="care-lead">Delivery, sizing and aftercare,<br>without the guesswork.</p>
+    </div>
+    <div class="care-list">
+      <details><summary>Secure payments, considered options<span class="plus" aria-hidden="true"></span></summary><p>The Diamond Oasis provides encrypted online payment through our website, with Apple Pay and Google Pay available at checkout on supported devices. Choose the payment method that suits you and complete your purchase securely.</p></details>
+      <details><summary>Custom designs: 50% now, 50% before shipping<span class="plus" aria-hidden="true"></span></summary><p>For custom-design orders, The Diamond Oasis offers a 50% deposit to begin. Once your jewellery is crafted and ready to ship, we send photographs and videos of the finished piece for you to review. The remaining 50% is settled after you receive these and before dispatch.</p></details>
+      <details><summary>Delivery &amp; shipping<span class="plus" aria-hidden="true"></span></summary><p>Standard engagement rings: estimated 7-10 calendar days to the UAE and 10-14 calendar days to all other supported destinations, including crafting and shipping. Product-specific lead times take precedence.</p><p>The published policy confirms complimentary shipping to UAE, KSA and Lebanon. For other destinations, confirm charges, duties and timing with our team.</p></details>
+      <details><summary>Ring sizing &amp; complimentary resizing<span class="plus" aria-hidden="true"></span></summary><p>The Diamond Oasis offers one complimentary resize within the first 60 days after purchase, including complimentary shipping to us and back to you wherever shipping is required. Full eternity rings are excluded from this service.</p></details>
+      <details><summary>Craftsmanship warranty &amp; aftercare<span class="plus" aria-hidden="true"></span></summary><p>If you notice a manufacturing concern, please contact us within 7 days of receipt. Following inspection and approval, we’ll arrange a repair or replacement and cover shipping both ways. Please keep your proof of purchase and the piece in its original, unaltered condition so we can assist.</p></details>
+      <details><summary>Returns &amp; made-to-order purchases<span class="plus" aria-hidden="true"></span></summary><p>Enjoy complimentary returns and refunds within 3 days of arrival on eligible in-stock items only. Made-to-order pieces, natural diamonds and jewellery featuring natural diamonds, and all customised items, including engraving or resizing, are excluded. Our team is here to help you choose with confidence before ordering.</p></details>
+      <details><summary>In-person &amp; virtual consultations<span class="plus" aria-hidden="true"></span></summary><p>Enjoy personal guidance from our jewellery specialists, in person by appointment or from the comfort of home. Explore diamond shapes, discuss your design and find the right fit. Contact us to arrange a convenient time and confirm your preferred location.</p></details>
+    </div>
+  </div>
+</section>
+
 
 <footer class="on-green">
   <div class="wrap">
     <div class="cols">
-      <div><h3>SHOP</h3><a href="#">Engagement Rings</a><a href="#">Wedding Rings</a><a href="#">Ring Sets</a><a href="#">Earrings</a><a href="#">Bracelets</a><a href="#">Necklaces</a><a href="#">Custom Design Studio</a></div>
-      <div><h3>CLIENT CARE</h3><a href="#">Chat on WhatsApp</a><a href="#">Book an appointment</a><a href="#">Shipping &amp; delivery</a><a href="#">Returns &amp; Warranty</a><a href="#">Diamond Guides</a></div>
-      <div><h3>CONTACT US</h3><span class="tel">UAE &amp; KSA +971 58 536 3996</span><span class="tel">Lebanon +961 76 181 986</span><a href="#">clientcare@thediamondoasis.com</a></div>
-      <div><h3>THE DIAMOND OASIS</h3><a href="#">Our Story</a><a href="#">Google reviews</a><a href="#">Trustpilot reviews</a></div>
+      <div><h3>Shop</h3><a href="#">Engagement Rings</a><a href="#">Wedding Rings</a><a href="#">Ring Sets</a><a href="#">Earrings</a><a href="#">Bracelets</a><a href="#">Necklaces</a><a href="#">Custom Design Studio</a></div>
+      <div><h3>Client care</h3><a href="#">Chat on WhatsApp</a><a href="#">Book an appointment</a><a href="#">Shipping &amp; delivery</a><a href="#">Returns &amp; Warranty</a><a href="#">Diamond Guides</a></div>
+      <div><h3>Contact us</h3><a href="#">Get in touch</a><a href="#" class="tel"><span>UAE &amp; KSA</span><span>+971 58 536 3996</span></a><a href="#" class="tel"><span>Lebanon</span><span>+961 76 181 986</span></a><a href="#">clientcare@thediamondoasis.com</a></div>
+      <div><h3>The Diamond Oasis</h3><a href="#">Our Story</a><a href="#">Diamond Guides</a><a href="#">Google reviews</a><a href="#">Trustpilot reviews</a></div>
     </div>
     <div class="legal">
-      <span>© 2026 The Diamond Oasis<a href="#">Privacy policy</a><a href="#">Warranty &amp; Policies</a></span>
-      <span><a href="#">Instagram</a><a href="#">Pinterest</a><a href="#">TikTok</a></span>
+      <div class="legal-left"><span>© 2026 The Diamond Oasis</span><span class="links"><a href="#">Privacy policy</a><a href="#">Warranty &amp; Policies</a></span></div>
+      <img src="assets/tdo-footer-logo.svg" alt="The Diamond Oasis" width="75" height="40">
+      <div class="social"><a href="#">Instagram</a><a href="#">Pinterest</a><a href="#">TikTok</a></div>
     </div>
   </div>
 </footer>
