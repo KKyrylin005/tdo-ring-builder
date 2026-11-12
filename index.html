@@ -449,11 +449,19 @@
       st.textContent = VIEWER_CSS;
       root.appendChild(st);
     }
-    var buttons = root.querySelectorAll('.viewer-options button');
-    buttons.forEach(function (b, i) {
-      if (!b.getAttribute('aria-label') && VIEWER_LABELS[i]) { b.setAttribute('aria-label', VIEWER_LABELS[i]); b.title = VIEWER_LABELS[i]; }
+    labelViewerButtons(root);
+    if (!root.__tdoObserved) {
+      // The viewer re-renders its buttons, so labels are reapplied whenever they change.
+      new MutationObserver(function () { labelViewerButtons(root); }).observe(root, { childList: true, subtree: true });
+      root.__tdoObserved = true;
+    }
+    return root.querySelectorAll('.viewer-options button').length > 0;
+  }
+  function labelViewerButtons(root) {
+    root.querySelectorAll('.viewer-options button').forEach(function (b, i) {
+      var label = VIEWER_LABELS[i];
+      if (label && b.getAttribute('aria-label') !== label) { b.setAttribute('aria-label', label); b.title = label; }
     });
-    return buttons.length > 0;
   }
   function watchViewerButtons(container) {
     var tries = 0;
