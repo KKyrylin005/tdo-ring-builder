@@ -727,6 +727,20 @@
     statusEl.textContent = 'The 3D view could not load (' + (e && e.code ? e.code : 'error') + ')';
   }
 
+  // Open the page at the builder (from the breadcrumb), not at the top of the header.
+  // Only on a fresh visit: no #anchor in the link and the visitor has not scrolled yet.
+  (function landOnBuilder() {
+    if (location.hash) return;
+    var crumbs = document.querySelector('.crumbs');
+    if (!crumbs) return;
+    function go() {
+      if (window.scrollY > 4) return;
+      window.scrollTo({ top: crumbs.getBoundingClientRect().top + window.scrollY - 8, behavior: 'auto' });
+    }
+    go();
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(go);
+  })();
+
   (function start() {
     var api = window.IjewelConfigurator;
     if (!api) { fail({ code: 'SDK' }); return; }
