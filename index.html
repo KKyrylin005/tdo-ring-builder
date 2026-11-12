@@ -187,6 +187,10 @@
   .back[disabled] { visibility: hidden; }
   .back svg, .next svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
   button.btn.next { width: auto; height: 40px; padding: 0 16px; gap: 8px; }
+  .mix { display: inline-flex; align-items: center; gap: 8px; font-size: 13px; color: var(--text-2); cursor: pointer; }
+  .mix input { width: 16px; height: 16px; margin: 0; accent-color: var(--green); }
+  .band-metal { display: flex; flex-direction: column; gap: 12px; }
+  .band-metal[hidden] { display: none; }
   .review { border-top: 1px solid var(--line); }
   .review-row { display: grid; grid-template-columns: 112px minmax(0, 1fr) auto; align-items: center; gap: 12px; min-height: 40px; border-bottom: 1px solid var(--line); font-size: 13px; }
   .review-row .k { color: var(--text-3); }
@@ -278,14 +282,14 @@
   <section class="builder" aria-label="Build your ring">
     <div class="stage">
       <div id="ring-3d" role="img" aria-label="3D view of your ring"><div class="status" id="status">Loading your ring</div><div class="zoom-hint" id="zoom-hint" aria-hidden="true">Use Ctrl + scroll to zoom</div></div>
-      <div class="note">The image is for display. The final stone size depends on the diamond you choose</div>
+      <div class="note">3D preview of your ring. Every ring is crafted to order to these choices</div>
     </div>
 
     <div class="panel">
       <div class="head-block">
         <div class="eyebrow">MADE TO ORDER</div>
         <h1 class="serif" id="title">Build your engagement ring</h1>
-        <div class="price"><span class="price-label">Setting price</span><span class="price-value" id="price">Confirmed by your specialist</span></div>
+        <div class="price"><span class="price-label">Price</span><span class="price-value" id="price">Confirmed by your specialist</span></div>
       </div>
 
       <div class="stepper">
@@ -298,7 +302,7 @@
       </div>
 
       <div class="actions">
-        <button type="button" class="btn primary" id="select-btn">SELECT THIS SETTING</button>
+        <button type="button" class="btn primary" id="select-btn">SELECT THIS RING</button>
         <a href="#" class="btn secondary"><svg class="icon" aria-hidden="true"><use href="#i-message"/></svg>CHAT ON WHATSAPP</a>
       </div>
     </div>
@@ -359,8 +363,8 @@
 
   // TDO wording and order for the axes. Axes not listed keep their iJewel label and go last.
   var AXES = {
-    shape: 'Diamond shape', carat: 'Preview carat', head: 'Head', shank: 'Band',
-    headMetal: 'Head metal', shankMetal: 'Band metal', centerStone: 'Diamond colour'
+    shape: 'Diamond shape', carat: 'Carat', centerStone: 'Diamond colour', shank: 'Band',
+    head: 'Prongs', headMetal: 'Metal', shankMetal: 'Band metal'
   };
   var ORDER = Object.keys(AXES);
   var METALS = { white: '#E4E4E0', rose: '#E3AE99', yellow: '#DDBB6A' };
@@ -466,10 +470,18 @@
     if (sig !== builtFor) { build(list); builtFor = sig; }
     list.forEach(function (x) {
       var step = stepsEl.querySelector('[data-axis="' + x.axis.key + '"]');
+      if (!step) return;
       var current = x.opts.filter(function (o) { return o.state === 'selected'; })[0];
-      step.querySelector('.step-value').textContent = current ? current.label : '';
+      var text = current ? current.label : '';
+      if (x.axis.key === 'headMetal' && mixMetals) {
+        var sel = session.selection(), band = list.filter(function (y) { return y.axis.key === 'shankMetal'; })[0];
+        var bo = band && band.opts.filter(function (o) { return o.key === sel.shankMetal; })[0];
+        text = 'Head ' + text + ' · Band ' + (bo ? bo.label : '');
+      }
+      var sv = step.querySelector('.step-value');
+      if (sv) sv.textContent = text;
       var rr = stepsEl.querySelector('[data-review="' + x.axis.key + '"] .v');
-      if (rr) rr.textContent = current ? current.label : '';
+      if (rr) rr.textContent = text;
       x.opts.forEach(function (opt) {
         var b = step.querySelector('[data-opt="' + CSS.escape(opt.key) + '"]');
         b.setAttribute('aria-pressed', opt.state === 'selected' ? 'true' : 'false');
@@ -500,7 +512,32 @@
   backBtn.addEventListener('click', function () { show(current - 1); });
   nextBtn.addEventListener('click', function () { show(current + 1); });
 
-  function build(list) {
+  var mixMetals = false;
+  function tileFor(axis, opt, onPick) {
+    var b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'tile';
+    b.setAttribute('data-opt', opt.key);
+    var icon = iconFor(axis, opt), sw = swatchFor(axis, opt);
+    if (icon) b.insertAdjacentHTML('beforeend', '<svg viewBox="0 0 40 40" aria-hidden="true">' + icon + '</svg>');
+    else if (sw) { var dot = document.createElement('span'); dot.className = 'swatch'; dot.style.background = sw; b.appendChild(dot); }
+    var lab = document.createElement('span');
+    lab.className = 'tile-label';
+    lab.textContent = opt.label;
+    b.appendChild(lab);
+    b.addEventListener('click', function () {
+      if (b.getAttribute('aria-pressed') === 'true') return;
+      onPick();
+    });
+    return b;
+  }
+
+  function build(all) {
+    // One Metal step: the band follows the head metal unless the shopper mixes metals.
+    var bandMetal = all.filter(function (x) { return x.axis.key === 'shankMetal'; })[0];
+    var hasHeadMetal = all.some(function (x) { return x.axis.key === 'headMetal'; });
+    var list = (bandMetal && hasHeadMetal) ? all.filter(function (x) { return x !== bandMetal; }) : all;
+    if (bandMetal && hasHeadMetal) { var sel0 = session.selection(); mixMetals = sel0.headMetal !== sel0.shankMetal; }
     stepsEl.innerHTML = '';
     progressEl.innerHTML = '';
     stepKeys = list.map(function (x) { return x.axis.key; });
@@ -533,24 +570,44 @@
       row.setAttribute('role', 'group');
       row.setAttribute('aria-label', name);
       x.opts.forEach(function (opt) {
-        var b = document.createElement('button');
-        b.type = 'button';
-        b.className = 'tile';
-        b.setAttribute('data-opt', opt.key);
-        var icon = iconFor(axis, opt), sw = swatchFor(axis, opt);
-        if (icon) b.insertAdjacentHTML('beforeend', '<svg viewBox="0 0 40 40" aria-hidden="true">' + icon + '</svg>');
-        else if (sw) { var dot = document.createElement('span'); dot.className = 'swatch'; dot.style.background = sw; b.appendChild(dot); }
-        var lab = document.createElement('span');
-        lab.className = 'tile-label';
-        lab.textContent = opt.label;
-        b.appendChild(lab);
-        b.addEventListener('click', function () {
-          if (b.getAttribute('aria-pressed') === 'true') return;
-          session.select(axis.key, opt.key).catch(function (e) { console.warn(e); });
-        });
-        row.appendChild(b);
+        row.appendChild(tileFor(axis, opt, function () {
+          var same = axis.key === 'headMetal' && bandMetal && !mixMetals && bandMetal.opts.some(function (o) { return o.key === opt.key; });
+          var p = same ? session.selectMany({ headMetal: opt.key, shankMetal: opt.key }) : session.select(axis.key, opt.key);
+          p.catch(function (e) { console.warn(e); });
+        }));
       });
       step.appendChild(row);
+      if (axis.key === 'headMetal' && bandMetal) {
+        var mix = document.createElement('label');
+        mix.className = 'mix';
+        mix.innerHTML = '<input type="checkbox"><span>Different metal for the band</span>';
+        var box = mix.querySelector('input');
+        box.checked = mixMetals;
+        var bandRow = document.createElement('div');
+        bandRow.className = 'band-metal';
+        bandRow.setAttribute('data-axis', 'shankMetal');
+        bandRow.hidden = !mixMetals;
+        bandRow.innerHTML = '<div class="step-count">Band metal</div>';
+        var brow = document.createElement('div');
+        brow.className = 'opts';
+        brow.setAttribute('role', 'group');
+        brow.setAttribute('aria-label', 'Band metal');
+        bandMetal.opts.forEach(function (opt) {
+          brow.appendChild(tileFor(bandMetal.axis, opt, function () {
+            session.select('shankMetal', opt.key).catch(function (e) { console.warn(e); });
+          }));
+        });
+        bandRow.appendChild(brow);
+        box.addEventListener('change', function () {
+          mixMetals = box.checked;
+          bandRow.hidden = !mixMetals;
+          var sel = session.selection();
+          if (!mixMetals && sel.headMetal !== sel.shankMetal) session.select('shankMetal', sel.headMetal).catch(function (e) { console.warn(e); });
+          else render();
+        });
+        step.appendChild(mix);
+        step.appendChild(bandRow);
+      }
       stepsEl.appendChild(step);
     });
     // Review: every choice in one list, each one a click away from its step
@@ -558,7 +615,7 @@
     var review = document.createElement('div');
     review.className = 'step-panel';
     review.hidden = true;
-    review.innerHTML = '<div class="step-count">Step ' + total + ' of ' + total + '</div><div class="step-title"><span class="name">Your ring</span></div><div class="review"></div><p class="hint" id="picked-text">Choose Select this setting to continue</p>';
+    review.innerHTML = '<div class="step-count">Step ' + total + ' of ' + total + '</div><div class="step-title"><span class="name">Your ring</span></div><div class="review"></div><p class="hint" id="picked-text">Choose Select this ring to continue</p>';
     var rv = review.querySelector('.review');
     list.forEach(function (x, i) {
       var r = document.createElement('div');
