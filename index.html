@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex, nofollow">
+<meta name="description" content="Build your engagement ring in 3D: diamond shape, carat, colour, band, prongs and 18K gold. Crafted to order by The Diamond Oasis.">
 <title>Build your engagement ring | The Diamond Oasis</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500&family=Shippori+Mincho:wght@400&family=Jost:wght@400;500&family=Poppins:wght@400;500&display=swap" rel="stylesheet">
@@ -134,7 +135,10 @@
     .util { height: 72px; }
     .locale, .hlink span, .util-right .hlink.book span { display: none; }
     .util-left, .util-right { gap: 20px; }
-    .logo img { width: 200px; }
+    .logo img { width: 176px; }
+    .util-right .hlink.book { display: none; }
+    nav.main { scrollbar-width: none; }
+    nav.main::-webkit-scrollbar { display: none; }
     nav.main { justify-content: flex-start; gap: 24px; overflow-x: auto; padding: 0 20px; }
     nav.main a { white-space: nowrap; }
     h1 { font-size: 36px; }
@@ -226,9 +230,15 @@
 
   @media (max-width: 1080px) { :root { --panel: 380px; } .builder { gap: 40px; } }
   @media (max-width: 960px) {
-    .builder { grid-template-columns: 1fr; gap: 32px; }
-    .stage { position: static; }
-    #ring-3d { max-height: none; }
+    /* Phone: title, then the ring stuck to the top while the steps scroll under it */
+    .builder { grid-template-columns: 1fr; gap: 0; }
+    .panel { display: contents; }
+    .head-block { order: 0; padding-bottom: 16px; border-bottom: 0; }
+    .stage { order: 1; position: sticky; top: 0; z-index: 3; background: #fff; padding-bottom: 8px; }
+    #ring-3d { aspect-ratio: auto; height: 42vh; max-height: 420px; }
+    .stage .note { display: none; }
+    .stepper { order: 2; margin-top: 16px; }
+    .panel .actions { order: 3; margin-top: 16px; }
     .panel h1 { font-size: 30px; }
   }
 </style>
@@ -254,30 +264,30 @@
   <div class="wrap util">
     <div class="util-left">
       <div class="locale"><span>English</span><span class="sep" aria-hidden="true">·</span><span>AED</span></div>
-      <a href="#" class="hlink"><svg class="hicon" aria-hidden="true"><use href="#h-search"/></svg><span>Search</span></a>
+      <a href="https://xcwymc-0j.myshopify.com/search" class="hlink"><svg class="hicon" aria-hidden="true"><use href="#h-search"/></svg><span>Search</span></a>
     </div>
-    <a href="#" class="logo" aria-label="The Diamond Oasis home"><img src="assets/logo.png" alt="The Diamond Oasis" width="370" height="74"></a>
+    <a href="https://xcwymc-0j.myshopify.com/" class="logo" aria-label="The Diamond Oasis home"><img src="assets/logo.png" alt="The Diamond Oasis" width="370" height="74"></a>
     <div class="util-right">
-      <a href="#" class="hlink book"><svg class="hicon" aria-hidden="true"><use href="#h-calendar"/></svg><span>Book an appointment</span></a>
-      <a href="#" class="hlink" aria-label="My account"><svg class="hicon" aria-hidden="true"><use href="#h-user"/></svg></a>
-      <a href="#" class="hlink" aria-label="Shopping bag"><svg class="hicon" aria-hidden="true"><use href="#h-bag"/></svg></a>
+      <a href="https://xcwymc-0j.myshopify.com/pages/book-appointment" class="hlink book"><svg class="hicon" aria-hidden="true"><use href="#h-calendar"/></svg><span>Book an appointment</span></a>
+      <a href="https://xcwymc-0j.myshopify.com/account" class="hlink" aria-label="My account"><svg class="hicon" aria-hidden="true"><use href="#h-user"/></svg></a>
+      <a href="https://xcwymc-0j.myshopify.com/cart" class="hlink" aria-label="Shopping bag"><svg class="hicon" aria-hidden="true"><use href="#h-bag"/></svg></a>
     </div>
   </div>
   <nav class="main" aria-label="Main">
-    <a href="#" aria-current="page">Engagement rings<svg class="chev" aria-hidden="true"><use href="#h-chev"/></svg></a>
-    <a href="#">Wedding rings<svg class="chev" aria-hidden="true"><use href="#h-chev"/></svg></a>
-    <a href="#">Fine jewellery<svg class="chev" aria-hidden="true"><use href="#h-chev"/></svg></a>
-    <a href="#">Gifts<svg class="chev" aria-hidden="true"><use href="#h-chev"/></svg></a>
-    <a href="#">The Oasis<svg class="chev" aria-hidden="true"><use href="#h-chev"/></svg></a>
+    <a href="https://xcwymc-0j.myshopify.com/collections/shop-by-ring" aria-current="page">Engagement rings<svg class="chev" aria-hidden="true"><use href="#h-chev"/></svg></a>
+    <a href="https://xcwymc-0j.myshopify.com/collections/wedding-rings">Wedding rings<svg class="chev" aria-hidden="true"><use href="#h-chev"/></svg></a>
+    <a href="https://xcwymc-0j.myshopify.com/collections/pear-cut-diamond-jewellery">Fine jewellery<svg class="chev" aria-hidden="true"><use href="#h-chev"/></svg></a>
+    <a href="https://xcwymc-0j.myshopify.com/collections/gifts-for-her">Gifts<svg class="chev" aria-hidden="true"><use href="#h-chev"/></svg></a>
+    <a href="https://xcwymc-0j.myshopify.com/pages/about-us">The Oasis<svg class="chev" aria-hidden="true"><use href="#h-chev"/></svg></a>
     <span class="divider" aria-hidden="true"></span>
-    <a href="#" class="studio">Custom Design Studio</a>
+    <a href="https://xcwymc-0j.myshopify.com/pages/design-your-own" class="studio">Custom Design Studio</a>
   </nav>
 </header>
 
 <main class="wrap">
   <nav class="crumbs" aria-label="Breadcrumb">
-    <a href="#">Home</a><svg class="icon" aria-hidden="true"><use href="#i-chevron-right"/></svg>
-    <a href="#">Engagement rings</a><svg class="icon" aria-hidden="true"><use href="#i-chevron-right"/></svg>
+    <a href="https://xcwymc-0j.myshopify.com/">Home</a><svg class="icon" aria-hidden="true"><use href="#i-chevron-right"/></svg>
+    <a href="https://xcwymc-0j.myshopify.com/collections/shop-by-ring">Engagement rings</a><svg class="icon" aria-hidden="true"><use href="#i-chevron-right"/></svg>
     <span aria-current="page">Build your ring</span>
   </nav>
 
@@ -304,7 +314,7 @@
       </div>
 
       <div class="actions">
-        <a href="#" class="btn secondary"><svg class="icon" aria-hidden="true"><use href="#i-message"/></svg>CHAT ON WHATSAPP</a>
+        <a href="https://wa.me/971585363996" class="btn secondary" id="wa-btn" target="_blank" rel="noopener"><svg class="icon" aria-hidden="true"><use href="#i-message"/></svg>CHAT ON WHATSAPP</a>
       </div>
     </div>
   </section>
@@ -314,7 +324,7 @@
       <h2 class="serif">See your ring before it ships</h2>
       <p>We share photographs and videos of your finished ring before dispatch. Your specialist coordinates delivery and stays in touch until your ring reaches you.</p>
     </div>
-    <a href="#" class="btn on-dark"><svg class="icon" aria-hidden="true"><use href="#i-calendar"/></svg>BOOK AN APPOINTMENT</a>
+    <a href="https://xcwymc-0j.myshopify.com/pages/book-appointment" class="btn on-dark"><svg class="icon" aria-hidden="true"><use href="#i-calendar"/></svg>BOOK AN APPOINTMENT</a>
   </section>
 
 </main>
@@ -342,15 +352,15 @@
 <footer class="on-green">
   <div class="wrap">
     <div class="cols">
-      <div><h3>Shop</h3><a href="#">Engagement Rings</a><a href="#">Wedding Rings</a><a href="#">Ring Sets</a><a href="#">Earrings</a><a href="#">Bracelets</a><a href="#">Necklaces</a><a href="#">Custom Design Studio</a></div>
-      <div><h3>Client care</h3><a href="#">Chat on WhatsApp</a><a href="#">Book an appointment</a><a href="#">Shipping &amp; delivery</a><a href="#">Returns &amp; Warranty</a><a href="#">Diamond Guides</a></div>
-      <div><h3>Contact us</h3><a href="#">Get in touch</a><a href="#" class="tel"><span>UAE &amp; KSA</span><span>+971 58 536 3996</span></a><a href="#" class="tel"><span>Lebanon</span><span>+961 76 181 986</span></a><a href="#">clientcare@thediamondoasis.com</a></div>
-      <div><h3>The Diamond Oasis</h3><a href="#">Our Story</a><a href="#">Diamond Guides</a><a href="#">Google reviews</a><a href="#">Trustpilot reviews</a></div>
+      <div><h3>Shop</h3><a href="https://xcwymc-0j.myshopify.com/collections/shop-by-ring">Engagement Rings</a><a href="https://xcwymc-0j.myshopify.com/collections/wedding-rings">Wedding Rings</a><a href="https://xcwymc-0j.myshopify.com/collections/shop-by-ring">Ring Sets</a><a href="https://xcwymc-0j.myshopify.com/collections/earring">Earrings</a><a href="https://xcwymc-0j.myshopify.com/collections/bracelets">Bracelets</a><a href="https://xcwymc-0j.myshopify.com/collections/necklace">Necklaces</a><a href="https://xcwymc-0j.myshopify.com/pages/design-your-own">Custom Design Studio</a></div>
+      <div><h3>Client care</h3><a href="https://wa.me/971585363996" target="_blank" rel="noopener">Chat on WhatsApp</a><a href="https://xcwymc-0j.myshopify.com/pages/book-appointment">Book an appointment</a><a href="https://xcwymc-0j.myshopify.com/pages/policies">Shipping &amp; delivery</a><a href="https://xcwymc-0j.myshopify.com/pages/policies">Returns &amp; Warranty</a><a href="https://xcwymc-0j.myshopify.com/blogs/guides">Diamond Guides</a></div>
+      <div><h3>Contact us</h3><a href="https://xcwymc-0j.myshopify.com/pages/get-in-touch">Get in touch</a><a href="tel:+971585363996" class="tel"><span>UAE &amp; KSA</span><span>+971 58 536 3996</span></a><a href="tel:+96176181986" class="tel"><span>Lebanon</span><span>+961 76 181 986</span></a><a href="mailto:clientcare@thediamondoasis.com">clientcare@thediamondoasis.com</a></div>
+      <div><h3>The Diamond Oasis</h3><a href="https://xcwymc-0j.myshopify.com/pages/about-us">Our Story</a><a href="https://xcwymc-0j.myshopify.com/blogs/guides">Diamond Guides</a><a href="#">Google reviews</a><a href="https://www.trustpilot.com/review/thediamondoasis.com" target="_blank" rel="noopener">Trustpilot reviews</a></div>
     </div>
     <div class="legal">
-      <div class="legal-left"><span>© 2026 The Diamond Oasis</span><span class="links"><a href="#">Privacy policy</a><a href="#">Warranty &amp; Policies</a></span></div>
+      <div class="legal-left"><span>© 2026 The Diamond Oasis</span><span class="links"><a href="https://xcwymc-0j.myshopify.com/pages/policies">Privacy policy</a><a href="https://xcwymc-0j.myshopify.com/pages/policies">Warranty &amp; Policies</a></span></div>
       <img src="assets/tdo-footer-logo.svg" alt="The Diamond Oasis" width="75" height="40">
-      <div class="social"><a href="#">Instagram</a><a href="#">Pinterest</a><a href="#">TikTok</a></div>
+      <div class="social"><a href="https://www.instagram.com/thediamondoasis/" target="_blank" rel="noopener">Instagram</a><a href="https://www.pinterest.com/thediamondoasis/" target="_blank" rel="noopener">Pinterest</a><a href="https://www.tiktok.com/@the_diamondoasis" target="_blank" rel="noopener">TikTok</a></div>
     </div>
   </div>
 </footer>
@@ -647,6 +657,7 @@
     '.viewer-options button svg{width:18px!important;height:18px!important}',
     ':fullscreen,:fullscreen #webgi-wrapper,:fullscreen #webgi-canvas-container{background:#fff!important}',
     ':fullscreen::backdrop{background:#fff!important}',
+    '@media (max-width:960px){.viewer-options{max-height:none!important;padding:2px!important;row-gap:2px!important;transform:none!important;top:8px!important;right:8px!important}.viewer-options button{width:32px!important;height:32px!important;min-width:32px!important}.viewer-options button svg{width:16px!important;height:16px!important}}',
     '.viewer-options button svg *:not([fill=none]){fill:currentColor!important}',
     '.viewer-options button svg [stroke]:not([stroke=none]){stroke:currentColor!important}'
   ].join('');
@@ -714,6 +725,15 @@
     }, { capture: true, passive: true });
   }
 
+  // WhatsApp opens with the ring the shopper built, plus a link that reopens it.
+  function updateWhatsApp() {
+    var a = document.getElementById('wa-btn');
+    if (!a || !session) return;
+    var link = location.origin + location.pathname + '?id=' + CONFIG.id + '&state=' + encodeURIComponent(session.stateString());
+    var text = 'Hello, I would like to ask about this engagement ring: ' + summary() + '. ' + link;
+    a.href = 'https://wa.me/971585363996?text=' + encodeURIComponent(text);
+  }
+
   function summary() {
     var sel = session.selection();
     return session.axes().filter(function (a) { return sel[a.key]; }).map(function (a) {
@@ -751,8 +771,10 @@
       render();
       session.on('selection:changed', function () {
         render();
+        updateWhatsApp();
       });
       session.on('error', function (e) { console.warn('configurator', e); });
+      updateWhatsApp();
       return api.mountViewer(document.getElementById('ring-3d'), session, {
         background: '#F3F6F4', camera: 'fit', tryOn: false,
         onError: function (e) { console.warn('viewer', e); }
