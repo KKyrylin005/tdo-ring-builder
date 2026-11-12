@@ -426,6 +426,43 @@
     });
   }
 
+  // Restyle the iJewel buttons over the ring in TDO style. They live in the viewer's open shadow root.
+  var VIEWER_CSS = [
+    '.viewer-options{background:#fff!important;border:1px solid #DDE3E0!important;border-radius:0!important;padding:4px!important;row-gap:4px!important;box-shadow:none!important;backdrop-filter:none!important}',
+    '.viewer-options button{width:40px!important;height:40px!important;min-width:40px!important;border-radius:0!important;color:#3A4A44!important;background:transparent!important;transition:background-color 160ms cubic-bezier(.22,1,.36,1),color 160ms cubic-bezier(.22,1,.36,1),transform 120ms cubic-bezier(.22,1,.36,1)!important}',
+    '.viewer-options button:hover,.viewer-options [aria-expanded=true] button{background:#EAF1EE!important;color:#09362F!important}',
+    '.viewer-options button:active{transform:scale(.96)!important}',
+    '.viewer-options button[data-focus-visible=true],.viewer-options button:focus-visible{outline:2px solid #09362F!important;outline-offset:-2px!important}',
+    '.viewer-options button svg{width:18px!important;height:18px!important}',
+    '.viewer-options button svg *:not([fill=none]){fill:currentColor!important}',
+    '.viewer-options button svg [stroke]:not([stroke=none]){stroke:currentColor!important}'
+  ].join('');
+  var VIEWER_LABELS = ['Display settings', 'Reset view', 'Turn the ring', 'Fit to view', 'Full screen'];
+  function styleViewerButtons(container) {
+    var host = null;
+    container.querySelectorAll('*').forEach(function (el) { if (!host && el.shadowRoot) host = el; });
+    if (!host) return false;
+    var root = host.shadowRoot;
+    if (!root.getElementById('tdo-viewer-style')) {
+      var st = document.createElement('style');
+      st.id = 'tdo-viewer-style';
+      st.textContent = VIEWER_CSS;
+      root.appendChild(st);
+    }
+    var buttons = root.querySelectorAll('.viewer-options button');
+    buttons.forEach(function (b, i) {
+      if (!b.getAttribute('aria-label') && VIEWER_LABELS[i]) { b.setAttribute('aria-label', VIEWER_LABELS[i]); b.title = VIEWER_LABELS[i]; }
+    });
+    return buttons.length > 0;
+  }
+  function watchViewerButtons(container) {
+    var tries = 0;
+    (function tick() {
+      if (styleViewerButtons(container) || ++tries > 40) return;
+      setTimeout(tick, 250);
+    })();
+  }
+
   function summary() {
     var sel = session.selection();
     return session.axes().filter(function (a) { return sel[a.key]; }).map(function (a) {
@@ -459,6 +496,7 @@
       });
     }).then(function () {
       document.getElementById('ring-3d').classList.add('ready');
+      watchViewerButtons(document.getElementById('ring-3d'));
     }).catch(fail);
 
     document.getElementById('select-btn').addEventListener('click', function () {
