@@ -45,15 +45,12 @@
   nav.main a { padding: 4px 0; border-bottom: 1px solid transparent; }
   nav.main a:hover, nav.main a[aria-current] { border-bottom-color: var(--green); color: var(--green); }
 
-  /* Intro */
+  /* Breadcrumb */
   .crumbs { display: flex; align-items: center; gap: 8px; font-size: 12px; line-height: 16px; color: var(--text-3); padding: 24px 0 32px; }
   .crumbs a:hover { color: var(--green); }
   .crumbs .icon { width: 12px; height: 12px; }
-  .intro { align-items: end; margin-bottom: 32px; }
-  .intro-text { display: flex; flex-direction: column; gap: 16px; }
   .eyebrow { font-size: 12px; line-height: 16px; letter-spacing: .16em; color: var(--green); }
   h1 { margin: 0; font-size: 48px; line-height: 1.06; letter-spacing: -.01em; }
-  .lead { margin: 0; max-width: 36rem; font-family: Jost, sans-serif; font-size: 16px; line-height: 26px; color: var(--text-2); }
   .actions { display: flex; flex-direction: column; gap: 12px; }
 
   /* Buttons: square corners as in the TDO store */
@@ -66,14 +63,8 @@
   .btn.on-dark { border-color: var(--on-green); color: var(--on-green); background: transparent; }
   .btn.on-dark:hover { background: var(--on-green); color: var(--green); }
 
-  /* Configurator: the one bright element */
-  .viewer iframe { display: block; width: 100%; height: min(800px, calc(100vh - 96px)); min-height: 640px; border: 0; background: #fff; }
   .note { margin-top: 12px; font-size: 12px; line-height: 16px; color: var(--text-3); }
 
-  /* Choices */
-  .below { margin-top: 48px; align-items: start; }
-  .steps { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--line); }
-  .steps li { display: grid; grid-template-columns: 40px 1fr; align-items: center; min-height: 52px; padding: 12px 0; border-bottom: 1px solid var(--line); font-family: Jost, sans-serif; font-size: 15px; line-height: 22px; }
   .num { font-family: Poppins, sans-serif; font-size: 13px; font-weight: 500; color: var(--green); font-variant-numeric: tabular-nums; }
   .picked { background: var(--surface); padding: 24px; }
   .picked-title { font-weight: 500; margin-bottom: 8px; }
@@ -108,7 +99,7 @@
 
   /* One entrance on load */
   @keyframes rise { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
-  .intro-text, .stage, #steps { animation: rise 400ms var(--ease) both; }
+  .head-block, .stage, #steps { animation: rise 400ms var(--ease) both; }
   #steps { animation-delay: 60ms; }
   .stage { animation-delay: 120ms; }
   @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
@@ -120,38 +111,60 @@
     .util nav { display: none; }
     nav.main { gap: 24px; height: auto; padding: 8px 0 16px; }
     h1 { font-size: 36px; }
-    .viewer iframe { height: 1080px; min-height: 0; }
     .band { padding: 40px 24px; margin-top: 64px; }
     .faq { margin: 64px 0; }
     .cols { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   }
 
   /* Builder: our panel drives the iJewel 3D view */
-  .builder { display: grid; grid-template-columns: minmax(0, 1fr) 400px; gap: 48px; align-items: start; }
-  .stage { position: sticky; top: 16px; }
-  #ring-3d { position: relative; width: 100%; aspect-ratio: 1 / 1; max-height: calc(100vh - 32px); background: var(--surface); overflow: hidden; }
+  :root { --selected: #EAF1EE; --panel: 432px; }
+  .builder { display: grid; grid-template-columns: minmax(0, 1fr) var(--panel); gap: 56px; align-items: start; }
+  .stage { position: sticky; top: 24px; }
+  #ring-3d { position: relative; width: 100%; aspect-ratio: 1 / 1; max-height: calc(100vh - 48px); background: var(--surface); overflow: hidden; }
   #ring-3d .status { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; padding: 24px; text-align: center; font-size: 13px; color: var(--text-3); transition: opacity 300ms var(--ease); }
   #ring-3d.ready .status { opacity: 0; pointer-events: none; }
+
   .panel { display: flex; flex-direction: column; gap: 32px; }
-  .head-block { display: flex; flex-direction: column; gap: 12px; }
-  .price { display: flex; align-items: baseline; gap: 8px; font-size: 15px; }
-  .price span { color: var(--text-3); font-size: 13px; }
+  .head-block { display: flex; flex-direction: column; gap: 12px; padding-bottom: 24px; border-bottom: 1px solid var(--line); }
+  .panel h1 { font-size: 40px; line-height: 1.08; }
+  .price { display: flex; flex-direction: column; gap: 4px; margin-top: 4px; }
+  .price-label { font-size: 12px; line-height: 16px; color: var(--text-3); }
+  .price-value { font-size: 16px; line-height: 24px; font-weight: 500; font-variant-numeric: tabular-nums; }
+
+  #steps { display: flex; flex-direction: column; gap: 28px; }
   .step { display: flex; flex-direction: column; gap: 12px; }
   .step-top { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; }
-  .step-name { display: flex; gap: 12px; font-weight: 500; }
-  .step-value { color: var(--text-3); font-size: 13px; text-align: right; }
-  .opts { display: flex; flex-wrap: wrap; gap: 8px; }
-  .opt { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 16px; border: 1px solid var(--line); background: #fff; color: var(--text); font: inherit; font-size: 13px; cursor: pointer; transition: border-color 160ms var(--ease), background-color 160ms var(--ease), transform 120ms var(--ease); }
-  .opt:hover { border-color: var(--text-3); }
-  .opt:active { transform: scale(.98); }
-  .opt[aria-pressed="true"] { border-color: var(--green); background: #EAF1EE; }
-  .opt:disabled { color: var(--text-3); background: var(--surface); cursor: not-allowed; text-decoration: line-through; }
-  .opt.adjusts { border-style: dashed; }
-  .swatch { width: 16px; height: 16px; border-radius: 50%; border: 1px solid rgba(24,27,26,.18); flex: none; }
-  .panel .actions { gap: 12px; }
-  .panel .picked p { word-break: break-word; }
-  .hint { font-size: 12px; line-height: 16px; color: var(--text-3); margin: 0; }
-  @media (max-width: 960px) { .builder { grid-template-columns: 1fr; } .stage { position: static; } }
+  .step-name { display: flex; align-items: baseline; gap: 12px; font-weight: 500; }
+  .step-value { font-size: 13px; color: var(--text-2); text-align: right; }
+
+  /* Option tiles: icon above label, as on Blue Nile, in TDO style (square, green when picked) */
+  .opts { display: grid; grid-template-columns: repeat(auto-fill, minmax(76px, 1fr)); gap: 8px; }
+  .tile { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; min-height: 88px; padding: 12px 4px; border: 1px solid var(--line); background: #fff; color: var(--text-2); font: inherit; font-size: 12px; line-height: 16px; text-align: center; cursor: pointer; transition: border-color 160ms var(--ease), background-color 160ms var(--ease), color 160ms var(--ease), transform 120ms var(--ease); }
+  .tile:hover { border-color: var(--text-3); color: var(--text); }
+  .tile:active { transform: scale(.98); }
+  .tile[aria-pressed="true"] { border-color: var(--green); background: var(--selected); color: var(--green); }
+  .tile:disabled { opacity: .4; cursor: not-allowed; }
+  .tile:disabled:hover { border-color: var(--line); color: var(--text-2); }
+  .tile.adjusts { border-style: dashed; }
+  .tile svg { width: 36px; height: 36px; flex: none; fill: none; stroke: currentColor; stroke-width: 1.2; stroke-linecap: round; stroke-linejoin: round; }
+  .tile svg .dot { fill: currentColor; stroke: none; }
+  .tile .swatch { width: 28px; height: 28px; border-radius: 50%; border: 1px solid rgba(24,27,26,.16); box-shadow: inset 0 -6px 10px rgba(24,27,26,.08); }
+  .tile[aria-pressed="true"] .swatch { outline: 1px solid var(--green); outline-offset: 3px; }
+  .tile-label { max-width: 100%; overflow-wrap: anywhere; }
+
+  .panel .actions { display: flex; flex-direction: column; gap: 12px; padding-top: 8px; }
+  button.btn { width: 100%; font: inherit; font-size: 12px; cursor: pointer; }
+  .picked { background: var(--surface); padding: 20px 24px; }
+  .picked p { word-break: break-word; font-size: 14px; line-height: 22px; }
+  .hint { margin: 0; font-size: 12px; line-height: 18px; color: var(--text-3); }
+
+  @media (max-width: 1080px) { :root { --panel: 380px; } .builder { gap: 40px; } }
+  @media (max-width: 960px) {
+    .builder { grid-template-columns: 1fr; gap: 32px; }
+    .stage { position: static; }
+    #ring-3d { max-height: none; }
+    .panel h1 { font-size: 34px; }
+  }
 </style>
 </head>
 <body>
@@ -189,13 +202,13 @@
     </div>
 
     <div class="panel">
-      <div class="head-block intro-text">
+      <div class="head-block">
         <div class="eyebrow">MADE TO ORDER</div>
         <h1 class="serif" id="title">Build your engagement ring</h1>
-        <div class="price">Setting price <span id="price">confirmed by your specialist</span></div>
+        <div class="price"><span class="price-label">Setting price</span><span class="price-value" id="price">Confirmed by your specialist</span></div>
       </div>
 
-      <div id="steps" class="panel" aria-live="polite"></div>
+      <div id="steps"></div>
 
       <div class="actions">
         <button type="button" class="btn primary" id="select-btn">SELECT THIS SETTING</button>
@@ -261,9 +274,59 @@
     headMetal: 'Head metal', shankMetal: 'Band metal', centerStone: 'Diamond colour'
   };
   var ORDER = Object.keys(AXES);
-  var METALS = { white: '#E6E6E3', rose: '#E7B3A0', yellow: '#E2C275' };
-  var STONES = { white: '#F4F6F8', yellow: '#F3E3A0', pink: '#F2C9D2', blue: '#BFD3EE', green: '#C6E3CF' };
+  var METALS = { white: '#E4E4E0', rose: '#E3AE99', yellow: '#DDBB6A' };
+  var STONES = { white: '#F5F7F9', yellow: '#F1DE96', pink: '#F0C3CF', blue: '#B9CFEC', green: '#C1E0CA' };
 
+  // ---- Icons, drawn on a 40 grid, stroke in the text colour ----
+  function pts(cx, cy, rx, ry, n, rot) {
+    var out = [];
+    for (var i = 0; i < n; i++) { var a = (rot || 0) + i * 2 * Math.PI / n; out.push([cx + rx * Math.cos(a), cy + ry * Math.sin(a)]); }
+    return out;
+  }
+  function poly(p) { return '<polygon points="' + p.map(function (q) { return q[0].toFixed(2) + ',' + q[1].toFixed(2); }).join(' ') + '"/>'; }
+  function brilliant(cx, cy, rx, ry) {
+    var t = pts(cx, cy, rx * .46, ry * .46, 8, Math.PI / 8), o = pts(cx, cy, rx, ry, 8, Math.PI / 8);
+    var lines = t.map(function (q, i) { return '<line x1="' + q[0].toFixed(2) + '" y1="' + q[1].toFixed(2) + '" x2="' + o[i][0].toFixed(2) + '" y2="' + o[i][1].toFixed(2) + '"/>'; }).join('');
+    return '<ellipse cx="' + cx + '" cy="' + cy + '" rx="' + rx + '" ry="' + ry + '"/>' + poly(t) + lines;
+  }
+  var SHAPES = {
+    round: brilliant(20, 20, 14, 14),
+    oval: brilliant(20, 20, 10.5, 15),
+    pear: '<path d="M20 4.5C25.5 11 31 17.5 31 25a11 11 0 0 1-22 0c0-7.5 5.5-14 11-20.5Z"/><ellipse cx="20" cy="25" rx="5" ry="5.5"/><path d="M20 4.5 20 19.5M9.5 22.5l5.6 1.4M30.5 22.5l-5.6 1.4M12 32.5l4-3.6M28 32.5l-4-3.6"/>',
+    marquise: '<path d="M20 4C29 11.5 29 28.5 20 36 11 28.5 11 11.5 20 4Z"/><path d="M20 13C23.6 16 23.6 24 20 27 16.4 24 16.4 16 20 13Z"/><path d="M20 4v9M20 27v9M13.6 20h2.8M23.6 20h2.8"/>',
+    emerald: '<path d="M15 5h10l4 4v22l-4 4H15l-4-4V9Z"/><path d="M16.5 9h7l2 2v18l-2 2h-7l-2-2V11Z"/><path d="M18 13h4v14h-4Z"/><path d="M11 9l3.5 2M29 9l-3.5 2M11 31l3.5-2M29 31l-3.5-2"/>'
+  };
+  function caratIcon(label) {
+    var ct = parseFloat(label) || 1;
+    var r = Math.max(5, Math.min(15, 5.5 + (ct - 0.5) * 3.8));
+    return brilliant(20, 20, r, r);
+  }
+  function headIcon(n) {
+    var stone = brilliant(20, 20, 8.5, 8.5);
+    if (!n) return stone + '<circle cx="20" cy="20" r="12.5" stroke-dasharray="2 3"/>';
+    var prongs = pts(20, 20, 12, 12, n, n === 4 ? Math.PI / 4 : -Math.PI / 2).map(function (q) {
+      return '<circle class="dot" cx="' + q[0].toFixed(2) + '" cy="' + q[1].toFixed(2) + '" r="2.2"/>';
+    }).join('');
+    return stone + prongs;
+  }
+  var BANDS = {
+    solitaire: '<ellipse cx="20" cy="22" rx="15" ry="7.5"/><ellipse cx="20" cy="22" rx="11.5" ry="5"/>',
+    pave: '<ellipse cx="20" cy="22" rx="15" ry="7.5"/><ellipse cx="20" cy="22" rx="11.5" ry="5"/>' +
+      [[9.2, 25.6], [12.6, 27.6], [16.3, 28.6], [20, 28.9], [23.7, 28.6], [27.4, 27.6], [30.8, 25.6]].map(function (q) { return '<circle class="dot" cx="' + q[0] + '" cy="' + q[1] + '" r="1.2"/>'; }).join(''),
+    twisted: '<path d="M5 22c0-4.2 6.7-7.5 15-7.5S35 17.8 35 22"/><path d="M8.5 22c0-2.8 5.1-5 11.5-5s11.5 2.2 11.5 5"/><path d="M5 22c3 6 9 7.5 15 3.5s12-2.5 15-3.5"/><path d="M8.5 22c4 3.2 9.5 6.5 15 4.2 4-1.7 8.6-3 11.5-4.2"/>'
+  };
+  function iconFor(axis, opt) {
+    var k = (opt.key + ' ' + opt.label).toLowerCase();
+    if (axis.key === 'shape') { for (var sh in SHAPES) if (k.indexOf(sh) > -1) return SHAPES[sh]; return SHAPES.round; }
+    if (axis.key === 'carat') return caratIcon(opt.label);
+    if (axis.key === 'head') return headIcon(/6/.test(k) && /prong/.test(k) ? 6 : (/4/.test(k) && /prong/.test(k) ? 4 : 0));
+    if (axis.key === 'shank') {
+      if (k.indexOf('pav') > -1) return BANDS.pave;
+      if (k.indexOf('twist') > -1) return BANDS.twisted;
+      return BANDS.solitaire;
+    }
+    return null;
+  }
   function swatchFor(axis, opt) {
     var k = (opt.key + ' ' + opt.label).toLowerCase();
     if (axis.kind !== 'material') return null;
@@ -273,54 +336,76 @@
       return METALS.yellow;
     }
     for (var c in STONES) if (k.indexOf(c) > -1) return STONES[c];
-    return null;
+    return '#E6EBE9';
   }
 
   var stepsEl = document.getElementById('steps');
   var statusEl = document.getElementById('status');
   var session = null;
+  var builtFor = '';
 
-  function render() {
+  function visibleAxes() {
     var axes = session.axes().filter(function (a) { return a.active !== false; });
     axes.sort(function (a, b) {
       var ia = ORDER.indexOf(a.key), ib = ORDER.indexOf(b.key);
       return (ia < 0 ? 99 : ia) - (ib < 0 ? 99 : ib);
     });
+    return axes.map(function (a) {
+      return { axis: a, opts: (a.options || []).filter(function (o) { return o.state !== 'hidden'; }) };
+    }).filter(function (x) { return x.opts.length; });
+  }
+
+  // Build the tiles once, then only update their state, so focus and scroll stay put.
+  function render() {
+    var list = visibleAxes();
+    var sig = list.map(function (x) { return x.axis.key + ':' + x.opts.map(function (o) { return o.key; }).join(','); }).join('|');
+    if (sig !== builtFor) { build(list); builtFor = sig; }
+    list.forEach(function (x) {
+      var step = stepsEl.querySelector('[data-axis="' + x.axis.key + '"]');
+      var current = x.opts.filter(function (o) { return o.state === 'selected'; })[0];
+      step.querySelector('.step-value').textContent = current ? current.label : '';
+      x.opts.forEach(function (opt) {
+        var b = step.querySelector('[data-opt="' + CSS.escape(opt.key) + '"]');
+        b.setAttribute('aria-pressed', opt.state === 'selected' ? 'true' : 'false');
+        b.disabled = opt.state === 'blocked' || opt.state === 'no-file';
+        b.classList.toggle('adjusts', opt.state === 'adjusts');
+        b.title = opt.state === 'adjusts' ? 'Picking this changes another choice to keep the ring makeable' : (opt.reason || '');
+      });
+    });
+  }
+
+  function build(list) {
     stepsEl.innerHTML = '';
-    axes.forEach(function (axis, i) {
-      var opts = (axis.options || []).filter(function (o) { return o.state !== 'hidden'; });
-      if (!opts.length) return;
-      var current = opts.filter(function (o) { return o.state === 'selected'; })[0];
+    list.forEach(function (x, i) {
+      var axis = x.axis, name = AXES[axis.key] || axis.label;
       var step = document.createElement('div');
       step.className = 'step';
-      var top = document.createElement('div');
-      top.className = 'step-top';
-      top.innerHTML = '<div class="step-name"><span class="num"></span><span class="name"></span></div><div class="step-value"></div>';
-      top.querySelector('.num').textContent = String(i + 1).padStart(2, '0');
-      top.querySelector('.name').textContent = AXES[axis.key] || axis.label;
-      top.querySelector('.step-value').textContent = current ? current.label : '';
+      step.setAttribute('data-axis', axis.key);
+      step.innerHTML = '<div class="step-top"><div class="step-name"><span class="num"></span><span class="name"></span></div><div class="step-value"></div></div>';
+      step.querySelector('.num').textContent = String(i + 1).padStart(2, '0');
+      step.querySelector('.name').textContent = name;
       var row = document.createElement('div');
       row.className = 'opts';
       row.setAttribute('role', 'group');
-      row.setAttribute('aria-label', AXES[axis.key] || axis.label);
-      opts.forEach(function (opt) {
+      row.setAttribute('aria-label', name);
+      x.opts.forEach(function (opt) {
         var b = document.createElement('button');
         b.type = 'button';
-        b.className = 'opt' + (opt.state === 'adjusts' ? ' adjusts' : '');
-        b.setAttribute('aria-pressed', opt.state === 'selected' ? 'true' : 'false');
-        b.disabled = opt.state === 'blocked' || opt.state === 'no-file';
-        if (opt.reason) b.title = opt.reason;
-        if (opt.state === 'adjusts') b.title = 'Picking this changes another choice to keep the ring makeable';
-        var sw = swatchFor(axis, opt);
-        if (sw) { var dot = document.createElement('span'); dot.className = 'swatch'; dot.style.background = sw; b.appendChild(dot); }
-        b.appendChild(document.createTextNode(opt.label));
+        b.className = 'tile';
+        b.setAttribute('data-opt', opt.key);
+        var icon = iconFor(axis, opt), sw = swatchFor(axis, opt);
+        if (icon) b.insertAdjacentHTML('beforeend', '<svg viewBox="0 0 40 40" aria-hidden="true">' + icon + '</svg>');
+        else if (sw) { var dot = document.createElement('span'); dot.className = 'swatch'; dot.style.background = sw; b.appendChild(dot); }
+        var lab = document.createElement('span');
+        lab.className = 'tile-label';
+        lab.textContent = opt.label;
+        b.appendChild(lab);
         b.addEventListener('click', function () {
-          if (opt.state === 'selected') return;
+          if (b.getAttribute('aria-pressed') === 'true') return;
           session.select(axis.key, opt.key).catch(function (e) { console.warn(e); });
         });
         row.appendChild(b);
       });
-      step.appendChild(top);
       step.appendChild(row);
       stepsEl.appendChild(step);
     });
