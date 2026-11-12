@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Build your engagement ring | The Diamond Oasis</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500&family=Jost:wght@400;500&family=Poppins:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500&family=Shippori+Mincho:wght@400&family=Jost:wght@400;500&family=Poppins:wght@400;500&display=swap" rel="stylesheet">
 <style>
   /* Tokens: TDO brand green as the one accent, green-tinted neutrals, 4px spacing grid */
   :root {
@@ -33,17 +33,28 @@
   .wrap { max-width: 1320px; margin: 0 auto; padding: 0 32px; }
   .split { display: grid; grid-template-columns: minmax(0, 1fr) var(--side); column-gap: 64px; row-gap: 24px; }
 
-  /* Header */
-  .bar { background: var(--green); color: var(--on-green); text-align: center; padding: 8px 16px; font-size: 12px; line-height: 16px; letter-spacing: .08em; }
-  header { border-bottom: 1px solid var(--line); }
-  .util { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; height: 72px; font-size: 13px; }
-  .util nav { display: flex; gap: 24px; color: var(--text-2); }
-  .util nav:last-child { justify-content: flex-end; }
-  .util nav a:hover { color: var(--green); }
-  .logo { font-size: 24px; line-height: 1; letter-spacing: .14em; color: var(--green); white-space: nowrap; }
-  nav.main { display: flex; flex-wrap: wrap; justify-content: center; gap: 40px; height: 48px; align-items: center; font-size: 13px; letter-spacing: .04em; }
-  nav.main a { padding: 4px 0; border-bottom: 1px solid transparent; }
-  nav.main a:hover, nav.main a[aria-current] { border-bottom-color: var(--green); color: var(--green); }
+  /* Header, matched to the TDO test store */
+  .testbar { display: flex; align-items: center; justify-content: center; height: 28px; background: #EAF0ED; color: var(--text); font-family: Jost, sans-serif; font-size: 11px; letter-spacing: .5px; }
+  .bar { display: flex; align-items: center; justify-content: center; height: 36px; padding: 0 16px; background: var(--green); color: var(--on-green); font-family: 'Shippori Mincho', serif; font-size: 12px; line-height: 16px; letter-spacing: .4px; }
+  .hicon { width: 20px; height: 22px; flex: none; fill: none; stroke: currentColor; stroke-width: 1.35; stroke-linecap: round; stroke-linejoin: round; }
+  .util { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; height: 96px; font-family: Jost, sans-serif; font-size: 12px; }
+  .util-left, .util-right { display: flex; align-items: center; gap: 32px; }
+  .util-right { justify-content: flex-end; gap: 40px; }
+  .locale { display: flex; align-items: center; gap: 8px; color: #667269; }
+  .locale .sep { color: #54655E; font-size: 11px; }
+  .hlink { display: inline-flex; align-items: center; gap: 8px; color: var(--green); letter-spacing: .1px; }
+  .hlink:hover { color: var(--green-press); }
+  .hlink:hover span { text-decoration: underline; text-underline-offset: 4px; text-decoration-thickness: 1px; }
+  .logo { display: block; line-height: 0; }
+  .logo img { display: block; width: 370px; height: auto; }
+  header { border-bottom: 1px solid #DCE4DF; }
+  nav.main { display: flex; justify-content: center; align-items: center; gap: 40px; height: 56px; border-top: 1px solid #EDF0EB; font-family: Jost, sans-serif; font-size: 13px; letter-spacing: .15px; }
+  nav.main a { display: inline-flex; align-items: center; gap: 8px; height: 100%; color: var(--text); border-bottom: 1px solid transparent; }
+  nav.main a:hover, nav.main a[aria-current] { color: var(--green); border-bottom-color: var(--green); }
+  nav.main .chev { width: 12px; height: 12px; fill: none; stroke: currentColor; stroke-width: 1.15; stroke-linecap: round; stroke-linejoin: round; transition: transform 160ms var(--ease); }
+  nav.main a:hover .chev { transform: translateY(1px); }
+  nav.main .divider { width: 1px; height: 24px; background: #DCE4DF; }
+  nav.main a.studio { color: var(--green); }
 
   /* Breadcrumb */
   .crumbs { display: flex; align-items: center; gap: 8px; font-size: 12px; line-height: 16px; color: var(--text-3); padding: 24px 0 32px; }
@@ -107,9 +118,12 @@
   @media (max-width: 960px) {
     .wrap { padding: 0 20px; }
     .split { grid-template-columns: 1fr; }
-    .util { grid-template-columns: 1fr; justify-items: center; height: auto; padding: 16px 0 8px; row-gap: 12px; }
-    .util nav { display: none; }
-    nav.main { gap: 24px; height: auto; padding: 8px 0 16px; }
+    .util { height: 72px; }
+    .locale, .hlink span, .util-right .hlink.book span { display: none; }
+    .util-left, .util-right { gap: 20px; }
+    .logo img { width: 200px; }
+    nav.main { justify-content: flex-start; gap: 24px; overflow-x: auto; padding: 0 20px; }
+    nav.main a { white-space: nowrap; }
     h1 { font-size: 36px; }
     .band { padding: 40px 24px; margin-top: 64px; }
     .faq { margin: 64px 0; }
@@ -170,21 +184,41 @@
 <body>
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
   <!-- lucide icons, 24 grid, used at 16px with a 1.5 stroke -->
+  <!-- TDO store header icons -->
+  <symbol id="h-search" viewBox="0 0 24 24"><circle cx="10" cy="10" r="6.5"/><path d="m15 15 6 6"/></symbol>
+  <symbol id="h-calendar" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="1"/><path d="M7 2v6m10-6v6M3 11h18"/></symbol>
+  <symbol id="h-user" viewBox="0 0 24 24"><circle cx="12" cy="7" r="4"/><path d="M4 22v-3a8 8 0 0 1 16 0v3Z"/></symbol>
+  <symbol id="h-bag" viewBox="0 0 24 24"><path d="M5 7h14l1 14H4L5 7Z"/><path d="M8 8V6a4 4 0 0 1 8 0v2"/></symbol>
+  <symbol id="h-chev" viewBox="0 0 16 16"><path d="m4 6 4 4 4-4"/></symbol>
   <symbol id="i-chevron-down" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></symbol>
   <symbol id="i-chevron-right" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></symbol>
   <symbol id="i-message" viewBox="0 0 24 24"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/></symbol>
   <symbol id="i-calendar" viewBox="0 0 24 24"><path d="M8 2v4"/><path d="M16 2v4"/><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18"/></symbol>
 </svg>
 
+<div class="testbar">TEST STORE · Preview only · Do not place orders</div>
 <div class="bar">Complimentary shipping to UAE, KSA &amp; Lebanon</div>
 <header>
   <div class="wrap util">
-    <nav aria-label="Services"><a href="#">Search</a><a href="#">Book an appointment</a><a href="#">Custom Design Studio</a></nav>
-    <a href="#" class="logo serif">THE DIAMOND OASIS ®</a>
-    <nav aria-label="Account"><a href="#">My account</a><a href="#">Shopping bag</a></nav>
+    <div class="util-left">
+      <div class="locale"><span>English</span><span class="sep" aria-hidden="true">·</span><span>AED</span></div>
+      <a href="#" class="hlink"><svg class="hicon" aria-hidden="true"><use href="#h-search"/></svg><span>Search</span></a>
+    </div>
+    <a href="#" class="logo" aria-label="The Diamond Oasis home"><img src="assets/logo.png" alt="The Diamond Oasis" width="370" height="74"></a>
+    <div class="util-right">
+      <a href="#" class="hlink book"><svg class="hicon" aria-hidden="true"><use href="#h-calendar"/></svg><span>Book an appointment</span></a>
+      <a href="#" class="hlink" aria-label="My account"><svg class="hicon" aria-hidden="true"><use href="#h-user"/></svg></a>
+      <a href="#" class="hlink" aria-label="Shopping bag"><svg class="hicon" aria-hidden="true"><use href="#h-bag"/></svg></a>
+    </div>
   </div>
-  <nav class="wrap main" aria-label="Main">
-    <a href="#" aria-current="page">Engagement rings</a><a href="#">Wedding rings</a><a href="#">Fine jewellery</a><a href="#">Gifts</a><a href="#">The Oasis</a>
+  <nav class="main" aria-label="Main">
+    <a href="#" aria-current="page">Engagement rings<svg class="chev" aria-hidden="true"><use href="#h-chev"/></svg></a>
+    <a href="#">Wedding rings<svg class="chev" aria-hidden="true"><use href="#h-chev"/></svg></a>
+    <a href="#">Fine jewellery<svg class="chev" aria-hidden="true"><use href="#h-chev"/></svg></a>
+    <a href="#">Gifts<svg class="chev" aria-hidden="true"><use href="#h-chev"/></svg></a>
+    <a href="#">The Oasis<svg class="chev" aria-hidden="true"><use href="#h-chev"/></svg></a>
+    <span class="divider" aria-hidden="true"></span>
+    <a href="#" class="studio">Custom Design Studio</a>
   </nav>
 </header>
 
