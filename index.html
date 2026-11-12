@@ -108,9 +108,9 @@
 
   /* One entrance on load */
   @keyframes rise { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
-  .intro-text, .actions, .viewer { animation: rise 400ms var(--ease) both; }
-  .actions { animation-delay: 60ms; }
-  .viewer { animation-delay: 120ms; }
+  .intro-text, .stage, #steps { animation: rise 400ms var(--ease) both; }
+  #steps { animation-delay: 60ms; }
+  .stage { animation-delay: 120ms; }
   @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
 
   @media (max-width: 960px) {
@@ -125,6 +125,33 @@
     .faq { margin: 64px 0; }
     .cols { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   }
+
+  /* Builder: our panel drives the iJewel 3D view */
+  .builder { display: grid; grid-template-columns: minmax(0, 1fr) 400px; gap: 48px; align-items: start; }
+  .stage { position: sticky; top: 16px; }
+  #ring-3d { position: relative; width: 100%; aspect-ratio: 1 / 1; max-height: calc(100vh - 32px); background: var(--surface); overflow: hidden; }
+  #ring-3d .status { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; padding: 24px; text-align: center; font-size: 13px; color: var(--text-3); transition: opacity 300ms var(--ease); }
+  #ring-3d.ready .status { opacity: 0; pointer-events: none; }
+  .panel { display: flex; flex-direction: column; gap: 32px; }
+  .head-block { display: flex; flex-direction: column; gap: 12px; }
+  .price { display: flex; align-items: baseline; gap: 8px; font-size: 15px; }
+  .price span { color: var(--text-3); font-size: 13px; }
+  .step { display: flex; flex-direction: column; gap: 12px; }
+  .step-top { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; }
+  .step-name { display: flex; gap: 12px; font-weight: 500; }
+  .step-value { color: var(--text-3); font-size: 13px; text-align: right; }
+  .opts { display: flex; flex-wrap: wrap; gap: 8px; }
+  .opt { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 16px; border: 1px solid var(--line); background: #fff; color: var(--text); font: inherit; font-size: 13px; cursor: pointer; transition: border-color 160ms var(--ease), background-color 160ms var(--ease), transform 120ms var(--ease); }
+  .opt:hover { border-color: var(--text-3); }
+  .opt:active { transform: scale(.98); }
+  .opt[aria-pressed="true"] { border-color: var(--green); background: #EAF1EE; }
+  .opt:disabled { color: var(--text-3); background: var(--surface); cursor: not-allowed; text-decoration: line-through; }
+  .opt.adjusts { border-style: dashed; }
+  .swatch { width: 16px; height: 16px; border-radius: 50%; border: 1px solid rgba(24,27,26,.18); flex: none; }
+  .panel .actions { gap: 12px; }
+  .panel .picked p { word-break: break-word; }
+  .hint { font-size: 12px; line-height: 16px; color: var(--text-3); margin: 0; }
+  @media (max-width: 960px) { .builder { grid-template-columns: 1fr; } .stage { position: static; } }
 </style>
 </head>
 <body>
@@ -155,36 +182,31 @@
     <span aria-current="page">Build your ring</span>
   </nav>
 
-  <section class="split intro" aria-label="About this ring">
-    <div class="intro-text">
-      <div class="eyebrow">MADE TO ORDER</div>
-      <h1 class="serif">Build your engagement ring</h1>
-      <p class="lead">Choose the diamond shape, preview carat, head, band and gold colour in 3D. Every ring is crafted to order in 18K gold.</p>
+  <section class="builder" aria-label="Build your ring">
+    <div class="stage">
+      <div id="ring-3d" role="img" aria-label="3D view of your ring"><div class="status" id="status">Loading your ring</div></div>
+      <div class="note">The image is for display. The final stone size depends on the diamond you choose</div>
     </div>
-    <div class="actions">
-      <a href="#" class="btn secondary"><svg class="icon" aria-hidden="true"><use href="#i-message"/></svg>CHAT ON WHATSAPP</a>
-      <a href="#" class="btn primary"><svg class="icon" aria-hidden="true"><use href="#i-calendar"/></svg>BOOK AN APPOINTMENT</a>
-    </div>
-  </section>
 
-  <section class="viewer" aria-label="Ring configurator">
-    <!-- iJewel3D: TDO MVP configurator. isAutoplay=true loads the 3D without the play button. -->
-    <iframe src="https://ijewel3d.com/drive/files/BSM4pm7dR3u23cL8-JsLRA/embedded?isAutoplay=true"
-            allow="xr-spatial-tracking; fullscreen" title="TDO MVP configurator"></iframe>
-    <div class="note">The image is for display. The final stone size depends on the diamond you choose</div>
-  </section>
+    <div class="panel">
+      <div class="head-block intro-text">
+        <div class="eyebrow">MADE TO ORDER</div>
+        <h1 class="serif" id="title">Build your engagement ring</h1>
+        <div class="price">Setting price <span id="price">confirmed by your specialist</span></div>
+      </div>
 
-  <section class="split below" aria-label="Your choices">
-    <ul class="steps">
-      <li><span class="num">01</span>Diamond shape: oval, round, marquise, pear or emerald</li>
-      <li><span class="num">02</span>Preview carat: 1, 2 or 3 ct</li>
-      <li><span class="num">03</span>Head: 4 Prong or 6 Prong</li>
-      <li><span class="num">04</span>Band: Solitaire, Pavé or Twisted</li>
-      <li><span class="num">05</span>White, yellow or rose gold for the head and the band</li>
-    </ul>
-    <div class="picked" aria-live="polite">
-      <div class="picked-title">Your ring</div>
-      <p id="picked-text">Make your choices in the configurator and press Add to cart</p>
+      <div id="steps" class="panel" aria-live="polite"></div>
+
+      <div class="actions">
+        <button type="button" class="btn primary" id="select-btn">SELECT THIS SETTING</button>
+        <a href="#" class="btn secondary"><svg class="icon" aria-hidden="true"><use href="#i-message"/></svg>CHAT ON WHATSAPP</a>
+      </div>
+
+      <div class="picked" aria-live="polite">
+        <div class="picked-title">Your ring</div>
+        <p id="picked-text">Choose your options above</p>
+      </div>
+      <p class="hint">Every ring is crafted to order in 18K gold. Book an appointment to see options in person</p>
     </div>
   </section>
 
@@ -226,24 +248,128 @@
   </div>
 </footer>
 
+<script src="https://releases.ijewel3d.com/libs/configurator-sdk/0.1.0-dev.2/configurator-sdk.iife.js"></script>
 <script>
-  // iJewel configurator: the shopper clicked Add to cart (block 2 of the iJewel embed code).
-  // On Shopify this is where the design goes into the cart; here it only shows what was picked.
-  window.addEventListener('message', function (event) {
-    if (event.origin !== 'https://ijewel3d.com') return;
-    var message = event.data;
-    if (!message || message.source !== 'ijewel' || message.event !== 'cart:requested') return;
-    var design = message.data || {};
-    var labels = design.labels;
-    if (labels && typeof labels === 'object' && !Array.isArray(labels)) {
-      labels = Object.keys(labels).map(function (k) { return k + ': ' + labels[k]; });
+  // Which iJewel configurator to show. Default: the published test configurator.
+  // Switch with ?id=<folder id>, e.g. ?id=BSM4pm7dR3u23cL8-JsLRA for the TDO MVP configurator once it is published.
+  var params = new URLSearchParams(location.search);
+  var CONFIG = { drive: 'drive', id: params.get('id') || 'arvCTU7mSZOkmvEHxgpYKQ' };
+
+  // TDO wording and order for the axes. Axes not listed keep their iJewel label and go last.
+  var AXES = {
+    shape: 'Diamond shape', carat: 'Preview carat', head: 'Head', shank: 'Band',
+    headMetal: 'Head metal', shankMetal: 'Band metal', centerStone: 'Diamond colour'
+  };
+  var ORDER = Object.keys(AXES);
+  var METALS = { white: '#E6E6E3', rose: '#E7B3A0', yellow: '#E2C275' };
+  var STONES = { white: '#F4F6F8', yellow: '#F3E3A0', pink: '#F2C9D2', blue: '#BFD3EE', green: '#C6E3CF' };
+
+  function swatchFor(axis, opt) {
+    var k = (opt.key + ' ' + opt.label).toLowerCase();
+    if (axis.kind !== 'material') return null;
+    if (/metal/i.test(axis.key)) {
+      if (k.indexOf('white') > -1) return METALS.white;
+      if (k.indexOf('rose') > -1) return METALS.rose;
+      return METALS.yellow;
     }
-    var parts = [];
-    if (design.title) parts.push(design.title);
-    if (Array.isArray(labels)) parts.push(labels.join(', '));
-    if (design.price != null) parts.push('Price: ' + design.price);
-    document.getElementById('picked-text').textContent = parts.join(' · ') || 'Design received';
-  });
+    for (var c in STONES) if (k.indexOf(c) > -1) return STONES[c];
+    return null;
+  }
+
+  var stepsEl = document.getElementById('steps');
+  var statusEl = document.getElementById('status');
+  var session = null;
+
+  function render() {
+    var axes = session.axes().filter(function (a) { return a.active !== false; });
+    axes.sort(function (a, b) {
+      var ia = ORDER.indexOf(a.key), ib = ORDER.indexOf(b.key);
+      return (ia < 0 ? 99 : ia) - (ib < 0 ? 99 : ib);
+    });
+    stepsEl.innerHTML = '';
+    axes.forEach(function (axis, i) {
+      var opts = (axis.options || []).filter(function (o) { return o.state !== 'hidden'; });
+      if (!opts.length) return;
+      var current = opts.filter(function (o) { return o.state === 'selected'; })[0];
+      var step = document.createElement('div');
+      step.className = 'step';
+      var top = document.createElement('div');
+      top.className = 'step-top';
+      top.innerHTML = '<div class="step-name"><span class="num"></span><span class="name"></span></div><div class="step-value"></div>';
+      top.querySelector('.num').textContent = String(i + 1).padStart(2, '0');
+      top.querySelector('.name').textContent = AXES[axis.key] || axis.label;
+      top.querySelector('.step-value').textContent = current ? current.label : '';
+      var row = document.createElement('div');
+      row.className = 'opts';
+      row.setAttribute('role', 'group');
+      row.setAttribute('aria-label', AXES[axis.key] || axis.label);
+      opts.forEach(function (opt) {
+        var b = document.createElement('button');
+        b.type = 'button';
+        b.className = 'opt' + (opt.state === 'adjusts' ? ' adjusts' : '');
+        b.setAttribute('aria-pressed', opt.state === 'selected' ? 'true' : 'false');
+        b.disabled = opt.state === 'blocked' || opt.state === 'no-file';
+        if (opt.reason) b.title = opt.reason;
+        if (opt.state === 'adjusts') b.title = 'Picking this changes another choice to keep the ring makeable';
+        var sw = swatchFor(axis, opt);
+        if (sw) { var dot = document.createElement('span'); dot.className = 'swatch'; dot.style.background = sw; b.appendChild(dot); }
+        b.appendChild(document.createTextNode(opt.label));
+        b.addEventListener('click', function () {
+          if (opt.state === 'selected') return;
+          session.select(axis.key, opt.key).catch(function (e) { console.warn(e); });
+        });
+        row.appendChild(b);
+      });
+      step.appendChild(top);
+      step.appendChild(row);
+      stepsEl.appendChild(step);
+    });
+  }
+
+  function summary() {
+    var sel = session.selection();
+    return session.axes().filter(function (a) { return sel[a.key]; }).map(function (a) {
+      var o = (a.options || []).filter(function (x) { return x.key === sel[a.key]; })[0];
+      return (AXES[a.key] || a.label) + ': ' + (o ? o.label : sel[a.key]);
+    }).join(' · ');
+  }
+
+  function fail(e) {
+    console.warn(e);
+    statusEl.textContent = 'The 3D view could not load (' + (e && e.code ? e.code : 'error') + ')';
+  }
+
+  (function start() {
+    var api = window.IjewelConfigurator;
+    if (!api) { fail({ code: 'SDK' }); return; }
+    var opts = { drive: CONFIG.drive, id: CONFIG.id, price: false };
+    if (params.get('state')) opts.state = params.get('state');
+    api.open(opts).then(function (s) {
+      session = s;
+      render();
+      session.on('selection:changed', function () {
+        render();
+        document.getElementById('picked-text').textContent = summary();
+      });
+      session.on('error', function (e) { console.warn('configurator', e); });
+      document.getElementById('picked-text').textContent = summary();
+      return api.mountViewer(document.getElementById('ring-3d'), session, {
+        background: '#F3F6F4', camera: 'fit', tryOn: false,
+        onError: function (e) { console.warn('viewer', e); }
+      });
+    }).then(function () {
+      document.getElementById('ring-3d').classList.add('ready');
+    }).catch(fail);
+
+    document.getElementById('select-btn').addEventListener('click', function () {
+      if (!session) return;
+      // On Shopify this is where the configuration goes into the cart. Here it shows what would be sent.
+      var conf = session.configuration();
+      var link = location.origin + location.pathname + '?id=' + CONFIG.id + '&state=' + encodeURIComponent(session.stateString());
+      document.getElementById('picked-text').textContent = summary() + (conf && conf.sku ? ' · SKU ' + conf.sku : '');
+      try { history.replaceState(null, '', link); } catch (e) {}
+    });
+  })();
 </script>
 </body>
 </html>
