@@ -6,8 +6,16 @@
 <meta name="robots" content="noindex, nofollow">
 <meta name="description" content="Build your engagement ring in 3D: diamond shape, carat, colour, band, prongs and 18K gold. Crafted to order by The Diamond Oasis.">
 <title>Build your engagement ring | The Diamond Oasis</title>
+<!-- Open connections early: the 3D viewer, its config and models, and the fonts -->
+<link rel="preconnect" href="https://releases.ijewel3d.com">
+<link rel="preconnect" href="https://drive-weur-1.app.ijewel3d.com" crossorigin>
+<link rel="preconnect" href="https://drive-weur-1.ijewel3d.com" crossorigin>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500&family=Shippori+Mincho:wght@400&family=Jost:wght@400;500&family=Poppins:wght@400;500&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
+<link rel="dns-prefetch" href="https://unpkg.com">
+<link rel="dns-prefetch" href="https://xcwymc-0j.myshopify.com">
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400&family=Jost:wght@400;500&family=Poppins:wght@400;500&display=swap" rel="stylesheet">
 <style>
   /* Tokens: TDO brand green as the one accent, green-tinted neutrals, 4px spacing grid */
   :root {
@@ -35,9 +43,9 @@
   a { color: inherit; text-decoration: none; transition: color var(--t-hover) var(--ease), border-color var(--t-hover) var(--ease), background-color var(--t-hover) var(--ease); }
   :focus-visible { outline: 2px solid var(--green); outline-offset: 2px; }
   .on-green :focus-visible { outline-color: var(--on-green); }
-  /* Cotta, loaded from the TDO store itself (not copied into this repo). Cormorant is the fallback. */
+  /* Cotta, loaded from the TDO store itself (not copied into this repo). If it cannot load, a system serif stands in. */
   @font-face { font-family: 'Cotta'; src: url('https://xcwymc-0j.myshopify.com/cdn/shop/t/151/assets/cotta-free.otf') format('opentype'); font-weight: 400; font-style: normal; font-display: swap; }
-  .serif { font-family: 'Cotta', 'Cormorant Garamond', serif; font-weight: 400; }
+  .serif { font-family: 'Cotta', Garamond, Baskerville, 'Times New Roman', serif; font-weight: 400; }
   .icon { width: 16px; height: 16px; flex: none; stroke: currentColor; fill: none; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
   .wrap { max-width: 1320px; margin: 0 auto; padding: 0 32px; }
   .split { display: grid; grid-template-columns: minmax(0, 1fr) var(--side); column-gap: 64px; row-gap: 24px; }
