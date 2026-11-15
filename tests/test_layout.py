@@ -8,7 +8,7 @@ def test_no_horizontal_overflow_on_phones(browser, base_url, w):
     ctx = browser.new_context(viewport={'width': w, 'height': 760}, is_mobile=True, has_touch=True)
     pg = ctx.new_page()
     open_builder(pg, base_url)
-    for t in ['Diamond shape', 'Diamond colour', 'Band', 'Prongs', 'Metal', 'Review']:
+    for t in ['Diamond shape', 'Carat', 'Diamond colour', 'Band', 'Prongs', 'Metal', 'Review']:
         go_to_step(pg, t)
         if t == 'Band':
             tile(pg, 'shank', 'Pavé').click(); pg.wait_for_timeout(800)
@@ -25,10 +25,11 @@ def test_next_on_phone_keeps_the_new_step_title_in_view(browser, base_url):
     ctx = browser.new_context(viewport={'width': 390, 'height': 760}, is_mobile=True, has_touch=True)
     pg = ctx.new_page()
     open_builder(pg, base_url)
+    pg.wait_for_selector('#ring-3d.ready', timeout=90000)
     go_to_step(pg, 'Band')
     tile(pg, 'shank', 'Pavé').click(); pg.wait_for_timeout(800)
     pg.locator('#next').scroll_into_view_if_needed()
-    pg.locator('#next').click(); pg.wait_for_timeout(600)
+    pg.locator('#next').click(); pg.wait_for_function('() => new Promise(r => { let y = scrollY, n = 0; const t = setInterval(() => { if (scrollY === y && ++n > 5) { clearInterval(t); r(true); } else if (scrollY !== y) { y = scrollY; n = 0; } }, 50); })', timeout=5000)
     res = pg.evaluate("""() => { const p = [...document.querySelectorAll('.step-panel')].find(x => !x.hidden);
         const t = p.querySelector('.step-title').getBoundingClientRect(); const s = document.querySelector('.stage').getBoundingClientRect();
         return {titleTop: t.top, titleBottom: t.bottom, stageBottom: s.bottom, vh: innerHeight}; }""")

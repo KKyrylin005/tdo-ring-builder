@@ -441,7 +441,14 @@
   // Which iJewel configurator to show. Default: the TDO MVP configurator built on the designer's file names
   // (HD01_RD_2.0, SH01). Switch with ?id=<folder id>, e.g. ?id=arvCTU7mSZOkmvEHxgpYKQ for the old test configurator.
   var params = new URLSearchParams(location.search);
-  var CONFIG = { drive: 'drive', id: params.get('id') || 'Lx9tQOmwTP6HwZtD5MYzbQ' };
+  // One iJewel configurator per carat: one configurator with every carat is over iJewel's 256 KB publish limit.
+  // The Carat step switches between them and carries the other choices over by their names.
+  // ?ct=1|2|3 opens a carat; ?id=<folder id> opens one configurator on its own (no Carat step).
+  var CARATS = [['1.00 ct', 'YxZQ0ob2Tpyt4rPiDTT9Ig'], ['2.00 ct', 'Lx9tQOmwTP6HwZtD5MYzbQ'], ['3.00 ct', 'CDyhYUYdScqiRJ1xkEkr2A']];
+  var caratMode = !params.get('id');
+  var caratIdx = Math.max(0, ['1', '2', '3'].indexOf(params.get('ct')));
+  if (!params.get('ct')) caratIdx = 1;
+  var CONFIG = { drive: 'drive', id: params.get('id') || CARATS[caratIdx][1] };
 
   // TDO wording and order for the axes. Axes not listed keep their iJewel label and go last.
   var AXES = {
@@ -468,10 +475,10 @@
   function isPaveAxis(a) { return a.key !== 'shank' && /pav/i.test(a.key + ' ' + (a.label || '')); }
   function paveAxis() {
     var opts = Object.keys(PAVE_LOOKS).map(function (c) { return { key: c, label: c, state: c === paveColor ? 'selected' : 'available' }; });
-    return { axis: { key: PAVE_KEY, label: PAVE_LABEL, kind: 'material', options: opts, virtual: true }, opts: opts };
+    return { axis: { key: PAVE_KEY, label: PAVE_LABEL, kind: 'material', options: opts, virtual: 'pave' }, opts: opts };
   }
   function ringLink() {
-    return location.origin + location.pathname + '?id=' + CONFIG.id + '&state=' + encodeURIComponent(session.stateString()) +
+    return location.origin + location.pathname + (caratMode ? '?ct=' + (caratIdx + 1) : '?id=' + CONFIG.id) + '&state=' + encodeURIComponent(session.stateString()) +
       (paveChosen() && paveColor !== 'White' ? '&pave=' + paveColor : '');
   }
   function viewer3d() { var vs = window.webGiViewers; return vs && vs.length ? vs[vs.length - 1] : null; }
@@ -524,8 +531,13 @@
     var o = a && (a.options || []).filter(function (x) { return x.state !== 'hidden'; });
     return o && o.length === 1 ? o[0].label : '';
   }
-  function axisName(a) { return (a.virtual || isPaveAxis(a)) ? PAVE_LABEL : (AXES[a.key] || a.label); }
-  function axisRank(a) { return (a.virtual || isPaveAxis(a)) ? ORDER.indexOf('shank') + .5 : (ORDER.indexOf(a.key) < 0 ? 99 : ORDER.indexOf(a.key)); }
+  function axisName(a) { return (a.virtual === 'pave' || isPaveAxis(a)) ? PAVE_LABEL : (AXES[a.key] || a.label); }
+  function axisRank(a) { return (a.virtual === 'pave' || isPaveAxis(a)) ? ORDER.indexOf('shank') + .5 : (ORDER.indexOf(a.key) < 0 ? 99 : ORDER.indexOf(a.key)); }
+  // The Carat step: one tile per configurator
+  function caratAxis() {
+    var opts = CARATS.map(function (c, i) { return { key: c[0], label: c[0], state: i === caratIdx ? 'selected' : 'available' }; });
+    return { axis: { key: 'carat', label: 'Carat', kind: 'option', options: opts, virtual: 'carat' }, opts: opts };
+  }
   var METALS = { white: '#E4E4E0', rose: '#E3AE99', yellow: '#DDBB6A' };
   var STONES = { white: '#F5F7F9', yellow: '#F1DE96', pink: '#F0C3CF', blue: '#B9CFEC', green: '#C1E0CA' };
 
@@ -614,12 +626,14 @@
   var builtFor = '';
 
   function visibleAxes() {
-    var axes = session.axes().filter(function (a) { return a.active !== false && !isPaveAxis(a); });
+    var axes = session.axes().filter(function (a) { return a.active !== false && !isPaveAxis(a) && !(caratMode && a.key === 'carat'); });
+    if (caratMode) axes.push(caratAxis().axis);
     axes.sort(function (a, b) { return axisRank(a) - axisRank(b); });
     // A list with a single option (Carat is fixed at 2 ct) has nothing to choose, so it gets no step.
     // It still goes into the WhatsApp summary, which reads every axis.
     return axes.map(function (a) {
-      if (a.virtual) return paveAxis();
+      if (a.virtual === 'carat') return caratAxis();
+      if (a.virtual === 'pave') return paveAxis();
       return { axis: a, opts: (a.options || []).filter(function (o) { return o.state !== 'hidden'; }) };
     }).filter(function (x) { return x.opts.length > 1; });
   }
@@ -635,7 +649,7 @@
       var current = x.opts.filter(function (o) { return o.state === 'selected'; })[0];
       var text = current ? current.label : '', reviewText = text;
       var carat = fixedValue('carat');
-      if (x.axis.key === 'shape' && carat) text += ' · ' + carat;
+      if (x.axis.key === 'shape' && carat && !caratMode) text += ' · ' + carat;
       if (x.axis.key === 'shank' && paveChosen()) text += ' · ' + paveColor + ' side stones';
       if (x.axis.key === 'headMetal' && mixMetals) {
         var sel = session.selection(), band = list.filter(function (y) { return y.axis.key === 'shankMetal'; })[0];
@@ -785,7 +799,8 @@
       row.setAttribute('aria-label', name);
       x.opts.forEach(function (opt) {
         row.appendChild(tileFor(axis, opt, function () {
-          if (axis.virtual) { setPave(opt.key); return; }
+          if (busy) return;
+          if (axis.virtual === 'carat') { switchCarat(opt.key); return; }
           var same = axis.key === 'headMetal' && bandMetal && !mixMetals && bandMetal.opts.some(function (o) { return o.key === opt.key; });
           var p = same ? session.selectMany({ headMetal: opt.key, shankMetal: opt.key }) : session.select(axis.key, opt.key);
           p.catch(function (e) { console.warn(e); });
@@ -884,7 +899,7 @@
       var key = x.axis.key;
       if (key === 'headMetal' && bandMetal) { reviewRow('headMetal', 'Head metal', i); reviewRow('shankMetal', 'Band metal', i); return; }
       reviewRow(key, stepNames[i], i);
-      if (key === 'shape' && fixedValue('carat')) reviewRow('carat', 'Carat', -1).querySelector('.v').textContent = fixedValue('carat');
+      if (key === 'shape' && !caratMode && fixedValue('carat')) reviewRow('carat', 'Carat', -1).querySelector('.v').textContent = fixedValue('carat');
       if (key === 'shank') reviewRow(PAVE_KEY, 'Side stones', i).hidden = true;
     });
     stepsEl.appendChild(review);
@@ -1011,8 +1026,76 @@
     if (document.fonts && document.fonts.ready) document.fonts.ready.then(go);
   })();
 
+  // ---- Sessions and the 3D view ----
+  var api = window.IjewelConfigurator;
+  var viewerHandle = null, busy = false, switchToken = 0, offEvents = [];
+  var VIEW_OPTS = { background: '#F3F6F4', camera: 'fit', tryOn: false, onError: function (e) { console.warn('viewer', e); } };
+  function useSession(s) {
+    offEvents.forEach(function (off) { try { if (typeof off === 'function') off(); } catch (e) {} });
+    session = s;
+    offEvents = [
+      s.on('selection:changed', function () { if (session !== s) return; render(); updateWhatsApp(); watchPave(); }),
+      s.on('error', function (e) { console.warn('configurator', e); })
+    ];
+    render();
+    updateWhatsApp();
+  }
+  function mount(s) {
+    var box = document.getElementById('ring-3d');
+    return api.mountViewer(box, s, VIEW_OPTS).then(function (h) {
+      viewerHandle = h;
+      box.classList.add('ready');
+      watchViewerButtons(box);
+      watchPave();
+    });
+  }
+  // The selected option name of every list, to carry the ring over to another configurator
+  function labelsOf(s) {
+    var sel = s.selection(), out = {};
+    s.axes().forEach(function (a) {
+      var o = (a.options || []).filter(function (x) { return x.key === sel[a.key]; })[0];
+      if (o && a.key !== 'carat') out[a.key] = o.label;
+    });
+    return out;
+  }
+  function applyLabels(s, want) {
+    var pick = {};
+    s.axes().forEach(function (a) {
+      var o = want[a.key] && (a.options || []).filter(function (x) { return x.label === want[a.key]; })[0];
+      if (o) pick[a.key] = o.key;
+    });
+    // All at once; if the set does not fit, one by one so as much as possible carries over
+    return s.selectMany(pick).catch(function () {
+      return Object.keys(pick).reduce(function (p, k) {
+        return p.then(function () { return s.select(k, pick[k]).catch(function () {}); });
+      }, Promise.resolve());
+    });
+  }
+  function switchCarat(label) {
+    var i = CARATS.map(function (c) { return c[0]; }).indexOf(label);
+    if (i < 0 || i === caratIdx || !session || busy) return;
+    var want = labelsOf(session), token = ++switchToken, box = document.getElementById('ring-3d');
+    busy = true;
+    caratIdx = i;
+    CONFIG.id = CARATS[i][1];
+    render();
+    box.classList.remove('ready');
+    statusEl.textContent = 'Loading your ring';
+    api.open({ drive: CONFIG.drive, id: CONFIG.id, price: false }).then(function (s) {
+      if (token !== switchToken) return;
+      return applyLabels(s, want).then(function () {
+        if (viewerHandle) { try { viewerHandle.destroy(); } catch (e) {} viewerHandle = null; }
+        useSession(s);
+        return mount(s);
+      });
+    }).catch(function (e) {
+      console.warn('carat switch failed', e);
+      statusEl.textContent = 'This carat could not load. Please try again';
+      box.classList.add('ready');
+    }).then(function () { if (token === switchToken) { busy = false; render(); } });
+  }
+
   (function start() {
-    var api = window.IjewelConfigurator;
     if (!api) { fail({ code: 'SDK' }); return; }
     var opts = { drive: CONFIG.drive, id: CONFIG.id, price: false };
     if (params.get('state')) opts.state = params.get('state');
@@ -1025,24 +1108,10 @@
       try { history.replaceState(null, '', location.pathname + (params.toString() ? '?' + params : '') + location.hash); } catch (err) {}
       return api.open(opts);
     }).then(function (s) {
-      session = s;
-      render();
-      session.on('selection:changed', function () {
-        render();
-        updateWhatsApp();
-        watchPave();
-      });
-      session.on('error', function (e) { console.warn('configurator', e); });
-      updateWhatsApp();
-      return api.mountViewer(document.getElementById('ring-3d'), session, {
-        background: '#F3F6F4', camera: 'fit', tryOn: false,
-        onError: function (e) { console.warn('viewer', e); }
-      });
+      useSession(s);
+      return mount(s);
     }).then(function () {
-      document.getElementById('ring-3d').classList.add('ready');
-      watchViewerButtons(document.getElementById('ring-3d'));
       wheelScrollsPage(document.getElementById('ring-3d'));
-      watchPave();
     }).catch(fail);
 
     window.selectRing = function () {
