@@ -505,7 +505,7 @@
   function paveChosen() {
     var sel = session.selection(), band = session.axes().filter(function (a) { return a.key === 'shank'; })[0];
     var o = band && (band.options || []).filter(function (x) { return x.key === sel.shank; })[0];
-    return !!o && /pav/i.test(o.key + ' ' + o.label);
+    return !!o && /pav/i.test(o.label);
   }
   function axisName(a) { return (a.virtual || isPaveAxis(a)) ? PAVE_LABEL : (AXES[a.key] || a.label); }
   function axisRank(a) { return (a.virtual || isPaveAxis(a)) ? ORDER.indexOf('shank') + .5 : (ORDER.indexOf(a.key) < 0 ? 99 : ORDER.indexOf(a.key)); }
@@ -571,8 +571,10 @@
     if (axis.key === 'carat') return caratIcon(opt.label);
     if (axis.key === 'head') return headIcon(/6/.test(k) && /prong/.test(k) ? 6 : (/4/.test(k) && /prong/.test(k) ? 4 : 0));
     if (axis.key === 'shank') {
-      if (k.indexOf('pav') > -1) return BANDS.pave;
-      if (k.indexOf('twist') > -1) return BANDS.twisted;
+      // By label only: iJewel keys can carry old names (Solitaire's key is "solitairepave")
+      var l = opt.label.toLowerCase();
+      if (l.indexOf('pav') > -1) return BANDS.pave;
+      if (l.indexOf('twist') > -1) return BANDS.twisted;
       return BANDS.solitaire;
     }
     return null;
