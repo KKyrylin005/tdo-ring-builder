@@ -711,7 +711,8 @@
     var bandMetal = all.filter(function (x) { return x.axis.key === 'shankMetal'; })[0];
     var hasHeadMetal = all.some(function (x) { return x.axis.key === 'headMetal'; });
     var list = (bandMetal && hasHeadMetal) ? all.filter(function (x) { return x !== bandMetal; }) : all;
-    if (bandMetal && hasHeadMetal) { var sel0 = session.selection(); mixMetals = sel0.headMetal !== sel0.shankMetal; }
+    // Head and band metal are always chosen separately, as two rows in one Metal step
+    if (bandMetal && hasHeadMetal) mixMetals = true;
     stepsEl.innerHTML = '';
     progressEl.innerHTML = '';
     stepKeys = list.map(function (x) { return x.axis.key; });
@@ -806,7 +807,10 @@
           if (!mixMetals && sel.headMetal !== sel.shankMetal) session.select('shankMetal', sel.headMetal).catch(function (e) { console.warn(e); });
           else render();
         });
-        step.appendChild(mix);
+        var headLabel = document.createElement('div');
+        headLabel.className = 'step-count metal-row-label';
+        headLabel.textContent = 'Head metal';
+        step.insertBefore(headLabel, row);
         step.appendChild(bandRow);
       }
       stepsEl.appendChild(step);
