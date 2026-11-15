@@ -1094,7 +1094,34 @@
       })();
     });
   }
+  function drawnFrames(h) { var rm = h && h.viewer && h.viewer.renderManager; return rm && typeof rm._totalFrameCount === 'number' ? rm._totalFrameCount : -1; }
+  function viewerDrawn(h, target, maxMs) {
+    return new Promise(function (res) {
+      var t0 = Date.now();
+      (function tick() {
+        var n = drawnFrames(h);
+        if (n < 0) return frames(3).then(res);
+        if (n >= target || Date.now() - t0 > maxMs) return res();
+        requestAnimationFrame(tick);
+      })();
+    });
+  }
   function frames(n) { return new Promise(function (res) { (function f(k) { if (!k) return res(); requestAnimationFrame(function () { f(k - 1); }); })(n); }); }
+  // The SDK re-fits the camera of every 3D view on the page whenever any of them finishes loading a scene, so a
+  // carat building in the background made the visible ring zoom back to the default view. Once a view is set up:
+  // - the SDK's own re-fit (called with no arguments) is skipped;
+  // - iJewel's re-fit after a model change still runs on the visible view, but not on a paused one, since a paused
+  //   camera glide would resume when the view is shown (the camera and scale are copied over on a switch anyway).
+  function guardFit(v) {
+    var w = v.handle && v.handle.viewer;
+    if (!w || w.__tdoFit) return;
+    var orig = w.fitToView;
+    w.__tdoFit = true;
+    w.fitToView = function () {
+      if (v.setup && (v.standby || !arguments.length)) return Promise.resolve();
+      return orig.apply(w, arguments);
+    };
+  }
   function setRendering(h, on) { try { if (h && h.viewer) { h.viewer.renderEnabled = on; if (on) h.viewer.setDirty(); } } catch (e) {} }
   // iJewel scales each configurator's ring to fit its own view, so the same band comes out a few percent bigger
   // or smaller per carat. Give the new view the old one's scale, so the band stays put and only the head changes.
@@ -1123,12 +1150,14 @@
     var p = api.mountViewer(box, s, VIEW_OPTS), layer = newLayer(box, before);
     return p.then(function (h) {
       layer = layer || newLayer(box, before);
-      views[caratIdx] = { session: s, handle: h, layer: layer, ready: Promise.resolve() };
+      var first = views[caratIdx] = { session: s, handle: h, layer: layer, ready: Promise.resolve() };
+      guardFit(first);
       viewerHandle = h;
       watchViewerButtons(box);
       watchPave();
       return viewerReady(h, 20000).then(function () { return viewerStill(h, 8, 4000); });
     }).then(function () {
+      if (views[caratIdx]) views[caratIdx].setup = true;
       if (caratMode) box.setAttribute('data-shown', CARATS[caratIdx][0]);
       box.classList.add('ready');
       // Low-memory phones build the other carats only once the shopper opens the Carat step
@@ -1152,12 +1181,14 @@
       return p;
     }).then(function (h) {
       v.handle = h;
+      guardFit(v);
       v.layer = v.layer || h.viewer && h.viewer.container && h.viewer.container.closest && h.viewer.container.closest('.ijewel-view');
       if (v.layer) v.layer.classList.add('incoming');
       watchViewerButtons(box);
       return viewerReady(h, 20000).then(function () { return viewerStill(h, 4, 4000); });
     }).then(function () {
-      if (caratIdx !== i) setRendering(v.handle, false);
+      v.setup = true;
+      if (caratIdx !== i) { v.standby = true; setRendering(v.handle, false); }
     }).catch(function (e) {
       console.warn('carat prewarm failed', i, e);
       if (v.handle) { try { v.handle.destroy(); } catch (err) {} } else if (v.layer) v.layer.remove();
@@ -1198,9 +1229,13 @@
       var to = views[i];
       return applyLabels(to.session, want).then(function () {
         setRendering(to.handle, true);
+        to.standby = false;
+        var drawn = drawnFrames(to.handle);
         if (from && from.handle) { matchScale(from.handle, to.handle); copyCamera(from.handle, to.handle); }
-        // Let it redraw at the new angle before it is shown (its frame count still holds the old, paused image)
-        return frames(2).then(function () { return viewerStill(to.handle, 3, 1200); });
+        // Show it only after it has really drawn a few frames at the new scale and angle:
+        // until then its canvas still holds the image from before it was paused
+        // and its camera has stopped gliding (the orbit controls ease into a new position over several frames)
+        return viewerDrawn(to.handle, drawn + 3, 2500).then(function () { return viewerStill(to.handle, 4, 2500); });
       }).then(function () {
         session = to.session;
         useSession(to.session);
@@ -1210,7 +1245,7 @@
         // The new view fades in on top of the old one, then the old one is hidden and paused
         if (to.layer) { to.layer.style.zIndex = 2; to.layer.classList.remove('incoming'); }
         setTimeout(function () {
-          if (from && from.layer && from !== to) { from.layer.classList.add('incoming'); setRendering(from.handle, false); }
+          if (from && from.layer && from !== to) { from.standby = true; from.layer.classList.add('incoming'); setRendering(from.handle, false); }
           if (to.layer) to.layer.style.zIndex = '';
         }, 420);
       });
