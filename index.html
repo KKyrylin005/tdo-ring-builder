@@ -444,17 +444,71 @@
     head: 'Prongs', headMetal: 'Metal', shankMetal: 'Band metal'
   };
   var ORDER = Object.keys(AXES);
-  // The pavé stones have their own colour list in iJewel (material layer Gem 02). Its key is set by iJewel,
-  // so it is found by name. The step sits right after Band and shows only while a pavé band is chosen.
-  var PAVE_LABEL = 'Pavé stones';
+  // Side stones (pavé) colour. iJewel holds the stones on material layer Gem 02 with one White option:
+  // a full colour list there multiplies every combination and breaks iJewel's 256 KB publish limit.
+  // So the page recolours those stones itself, with the same diamond settings iJewel uses for the centre stone.
+  // The step sits right after Band and shows only while a band with side stones is chosen.
+  var PAVE_LABEL = 'Side stones';
+  var PAVE_LAYER = 'Gem 02';
+  var PAVE_KEY = 'sideStones';
+  var PAVE_LOOKS = {
+    White:  { color: '#ffffff', envMapIntensity: 1.3,  rIndexDelta: .01,  absorptionFactor: 1,   refractiveIndex: 2.6, gammaFactor: 1,    boostFactors: [1, 1, 1],   reflectivity: .5 },
+    Yellow: { color: '#fefbf2', envMapIntensity: 1.03, rIndexDelta: .005, absorptionFactor: 1.3, refractiveIndex: 2.6, gammaFactor: 1,    boostFactors: [2.3, 2, 1], reflectivity: .5 },
+    Pink:   { color: '#f7e0e0', envMapIntensity: 1.5,  rIndexDelta: .004, absorptionFactor: 1,   refractiveIndex: 2.4, gammaFactor: 1.09, boostFactors: [2, 2, 2],   reflectivity: .46 },
+    Blue:   { color: '#b5cbdd', envMapIntensity: 1.5,  rIndexDelta: .004, absorptionFactor: 1,   refractiveIndex: 2.4, gammaFactor: 1.09, boostFactors: [2, 2, 2],   reflectivity: .46 },
+    Green:  { color: '#c9e3d3', envMapIntensity: 1.5,  rIndexDelta: .004, absorptionFactor: 1,   refractiveIndex: 2.4, gammaFactor: 1.09, boostFactors: [2, 2, 2],   reflectivity: .46 }
+  };
+  var paveColor = PAVE_LOOKS[params.get('pave')] ? params.get('pave') : 'White';
   function isPaveAxis(a) { return a.key !== 'shank' && /pav/i.test(a.key + ' ' + (a.label || '')); }
+  function paveAxis() {
+    var opts = Object.keys(PAVE_LOOKS).map(function (c) { return { key: c, label: c, state: c === paveColor ? 'selected' : 'available' }; });
+    return { axis: { key: PAVE_KEY, label: PAVE_LABEL, kind: 'material', options: opts, virtual: true }, opts: opts };
+  }
+  function ringLink() {
+    return location.origin + location.pathname + '?id=' + CONFIG.id + '&state=' + encodeURIComponent(session.stateString()) +
+      (paveChosen() && paveColor !== 'White' ? '&pave=' + paveColor : '');
+  }
+  function viewer3d() { var vs = window.webGiViewers; return vs && vs.length ? vs[vs.length - 1] : null; }
+  // Returns true once the stones wear the chosen colour, so the watcher can rest.
+  function applyPave() {
+    var v = viewer3d(), changed = false, seen = false;
+    if (!v || !v.scene || !v.scene.modelRoot) return false;
+    var look = PAVE_LOOKS[paveColor];
+    v.scene.modelRoot.traverse(function (o) {
+      var layer = o.userData && o.userData.rhinoLayer && o.userData.rhinoLayer.fullPath;
+      if (!o.isMesh || !o.material || (layer !== PAVE_LAYER && o.material.name !== PAVE_LAYER)) return;
+      seen = true;
+      var m = o.material, u = m.uniforms || {};
+      if (m.__tdoPave === paveColor) return;
+      Object.keys(look).forEach(function (k) {
+        var val = look[k];
+        if (k === 'color') { if (m.color && m.color.set) m.color.set(val); if (u.color && u.color.value && u.color.value.set) u.color.value.set(val); return; }
+        if (Array.isArray(val)) { var t = u[k] && u[k].value; if (t && t.fromArray) t.fromArray(val); return; }
+        if (k in m) m[k] = val;
+        if (u[k]) u[k].value = val;
+      });
+      m.__tdoPave = paveColor;
+      m.needsUpdate = true;
+      changed = true;
+    });
+    if (changed && v.setDirty) v.setDirty();
+    return seen && !changed;
+  }
+  // Models and materials reload when a choice changes, so keep checking for a few seconds after each change.
+  var paveTimer = null;
+  function watchPave() {
+    clearInterval(paveTimer);
+    var tries = 0;
+    paveTimer = setInterval(function () { tries++; if ((applyPave() && tries > 8) || tries > 40) clearInterval(paveTimer); }, 250);
+  }
+  function setPave(c) { paveColor = c; render(); updateWhatsApp(); watchPave(); }
   function paveChosen() {
     var sel = session.selection(), band = session.axes().filter(function (a) { return a.key === 'shank'; })[0];
     var o = band && (band.options || []).filter(function (x) { return x.key === sel.shank; })[0];
     return !!o && /pav/i.test(o.key + ' ' + o.label);
   }
-  function axisName(a) { return isPaveAxis(a) ? PAVE_LABEL : (AXES[a.key] || a.label); }
-  function axisRank(a) { return isPaveAxis(a) ? ORDER.indexOf('shank') + .5 : (ORDER.indexOf(a.key) < 0 ? 99 : ORDER.indexOf(a.key)); }
+  function axisName(a) { return (a.virtual || isPaveAxis(a)) ? PAVE_LABEL : (AXES[a.key] || a.label); }
+  function axisRank(a) { return (a.virtual || isPaveAxis(a)) ? ORDER.indexOf('shank') + .5 : (ORDER.indexOf(a.key) < 0 ? 99 : ORDER.indexOf(a.key)); }
   var METALS = { white: '#E4E4E0', rose: '#E3AE99', yellow: '#DDBB6A' };
   var STONES = { white: '#F5F7F9', yellow: '#F1DE96', pink: '#F0C3CF', blue: '#B9CFEC', green: '#C1E0CA' };
 
@@ -541,12 +595,13 @@
   var builtFor = '';
 
   function visibleAxes() {
-    var pave = paveChosen();
-    var axes = session.axes().filter(function (a) { return a.active !== false && (pave || !isPaveAxis(a)); });
+    var axes = session.axes().filter(function (a) { return a.active !== false && !isPaveAxis(a); });
+    if (paveChosen()) axes.push(paveAxis().axis);
     axes.sort(function (a, b) { return axisRank(a) - axisRank(b); });
     // A list with a single option (Carat is fixed at 2 ct) has nothing to choose, so it gets no step.
     // It still goes into the WhatsApp summary, which reads every axis.
     return axes.map(function (a) {
+      if (a.virtual) return paveAxis();
       return { axis: a, opts: (a.options || []).filter(function (o) { return o.state !== 'hidden'; }) };
     }).filter(function (x) { return x.opts.length > 1; });
   }
@@ -672,6 +727,7 @@
       row.setAttribute('aria-label', name);
       x.opts.forEach(function (opt) {
         row.appendChild(tileFor(axis, opt, function () {
+          if (axis.virtual) { setPave(opt.key); return; }
           var same = axis.key === 'headMetal' && bandMetal && !mixMetals && bandMetal.opts.some(function (o) { return o.key === opt.key; });
           var p = same ? session.selectMany({ headMetal: opt.key, shankMetal: opt.key }) : session.select(axis.key, opt.key);
           p.catch(function (e) { console.warn(e); });
@@ -822,18 +878,19 @@
   function updateWhatsApp() {
     var a = document.getElementById('wa-btn');
     if (!a || !session) return;
-    var link = location.origin + location.pathname + '?id=' + CONFIG.id + '&state=' + encodeURIComponent(session.stateString());
+    var link = ringLink();
     var text = 'Hello, I would like to ask about this engagement ring: ' + summary() + '. ' + link;
     a.href = 'https://wa.me/971585363996?text=' + encodeURIComponent(text);
   }
 
   function summary() {
     var sel = session.selection();
-    var pave = paveChosen();
-    return session.axes().filter(function (a) { return sel[a.key] && (pave || !isPaveAxis(a)); }).map(function (a) {
+    var parts = session.axes().filter(function (a) { return sel[a.key] && !isPaveAxis(a); }).map(function (a) {
       var o = (a.options || []).filter(function (x) { return x.key === sel[a.key]; })[0];
       return axisName(a) + ': ' + (o ? o.label : sel[a.key]);
-    }).join(' · ');
+    });
+    if (paveChosen()) parts.push(PAVE_LABEL + ': ' + paveColor);
+    return parts.join(' · ');
   }
 
   function fail(e) {
@@ -866,6 +923,7 @@
       session.on('selection:changed', function () {
         render();
         updateWhatsApp();
+        watchPave();
       });
       session.on('error', function (e) { console.warn('configurator', e); });
       updateWhatsApp();
@@ -877,13 +935,14 @@
       document.getElementById('ring-3d').classList.add('ready');
       watchViewerButtons(document.getElementById('ring-3d'));
       wheelScrollsPage(document.getElementById('ring-3d'));
+      watchPave();
     }).catch(fail);
 
     window.selectRing = function () {
       if (!session) return;
       // On Shopify this is where the configuration goes into the cart. Here it shows what would be sent.
       var conf = session.configuration();
-      var link = location.origin + location.pathname + '?id=' + CONFIG.id + '&state=' + encodeURIComponent(session.stateString());
+      var link = ringLink();
       var note = document.getElementById('picked-text');
       note.hidden = false;
       note.textContent = 'Saved. On the store this ring goes to your bag' + (conf && conf.sku ? ' · SKU ' + conf.sku : '');
