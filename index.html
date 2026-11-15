@@ -1094,6 +1094,7 @@
       })();
     });
   }
+  function frames(n) { return new Promise(function (res) { (function f(k) { if (!k) return res(); requestAnimationFrame(function () { f(k - 1); }); })(n); }); }
   function setRendering(h, on) { try { if (h && h.viewer) { h.viewer.renderEnabled = on; if (on) h.viewer.setDirty(); } } catch (e) {} }
   // Keep the angle the shopper turned the ring to
   function copyCamera(from, to) {
@@ -1190,7 +1191,8 @@
       return applyLabels(to.session, want).then(function () {
         setRendering(to.handle, true);
         if (from && from.handle) copyCamera(from.handle, to.handle);
-        return viewerStill(to.handle, 3, 1200);
+        // Let it redraw at the new angle before it is shown (its frame count still holds the old, paused image)
+        return frames(2).then(function () { return viewerStill(to.handle, 3, 1200); });
       }).then(function () {
         session = to.session;
         useSession(to.session);
