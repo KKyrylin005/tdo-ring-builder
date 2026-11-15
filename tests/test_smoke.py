@@ -19,14 +19,14 @@ def test_carat_switch_keeps_the_other_choices(page, base_url):
     page.wait_for_function("document.querySelector('[data-axis=\"shape\"] .step-value').textContent.startsWith('Oval')")
     go_to_step(page, 'Carat')
     tile(page, 'carat', '3.00 ct').click()
-    # The old ring stays on screen while the new carat loads under it, then the new one fades in
-    page.wait_for_function("document.getElementById('ring-3d').classList.contains('switching')", timeout=5000)
-    page.wait_for_function("!document.getElementById('ring-3d').classList.contains('switching')", timeout=120000)
-    assert page.locator('#ring-3d .ijewel-view').count() == 1
+    # The other carats are built in the background; the switch swaps finished 3D views
+    page.wait_for_function("document.getElementById('ring-3d').dataset.shown === '3.00 ct' && document.querySelectorAll('#ring-3d .ijewel-view:not(.incoming)').length === 1 && [...document.querySelectorAll('#ring-3d .ijewel-view')].every(e => !e.style.zIndex)", timeout=120000)
+    page.wait_for_timeout(1500)
+    assert page.locator('#ring-3d .ijewel-view:not(.incoming)').count() == 1
     assert page.locator('[data-axis="carat"] .tile[aria-pressed="true"]').inner_text() == '3.00 ct'
     page.wait_for_timeout(2000)
     assert page.locator('[data-axis="shape"] .step-value').inner_text().startswith('Oval')
     assert any('hd01_ov_3' in u for u in glbs), glbs
     assert 'ct%3D3' in page.locator('#wa-btn').get_attribute('href')
-    assert page.evaluate('window.webGiViewers.length') == 1
+    assert page.evaluate('window.webGiViewers.length') <= 3
     assert page.errors == []
