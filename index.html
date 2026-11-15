@@ -266,6 +266,8 @@
 
   /* Option tiles: icon above label, as on Blue Nile, in TDO style (square, green when picked) */
   .opts { display: grid; grid-template-columns: repeat(auto-fill, minmax(76px, 1fr)); gap: 8px; }
+  /* Five side stone colours stay on one row, also on a phone */
+  .side-stones .opts { grid-template-columns: repeat(5, minmax(0, 1fr)); }
   .tile { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; min-height: 88px; padding: 12px 4px; border: 1px solid var(--line); background: #fff; color: var(--text-2); font: inherit; font-size: 12px; line-height: 16px; text-align: center; cursor: pointer; transition: border-color var(--t-hover) var(--ease), background-color var(--t-hover) var(--ease), color var(--t-hover) var(--ease), opacity var(--t-hover) var(--ease), transform var(--t-fast) var(--ease); }
   .tile:active { transform: scale(.98); }
   .tile[aria-pressed="true"] { border-color: var(--green); background: var(--selected); color: var(--green); }
