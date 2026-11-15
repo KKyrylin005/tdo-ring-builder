@@ -255,6 +255,7 @@
   .review { border-top: 1px solid var(--line); }
   .review-row { display: grid; grid-template-columns: 112px minmax(0, 1fr) auto; align-items: center; gap: 12px; min-height: 40px; border-bottom: 1px solid var(--line); font-size: 13px; }
   .review-row[hidden] { display: none; }
+  .sr-only { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
   .review-row .k { color: var(--text-3); }
   .review-row .v { color: var(--text); }
   .review-row button { padding: 8px 0; border: 0; background: none; color: var(--green); font: inherit; font-size: 12px; text-decoration: underline; text-decoration-color: rgba(9,54,47,.35); text-underline-offset: 3px; cursor: pointer; transition: text-decoration-color var(--t-hover) var(--ease), text-underline-offset var(--t-hover) var(--ease); }
@@ -375,7 +376,8 @@
 
       <div class="stepper">
         <nav class="progress" id="progress" aria-label="Steps"></nav>
-        <div id="steps" aria-live="polite"></div>
+        <div id="steps"></div>
+        <div class="sr-only" id="step-announce" aria-live="polite"></div>
         <div class="step-nav">
           <button type="button" class="back" id="back"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>Back</button>
           <button type="button" class="btn secondary next" id="next"><span id="next-label">NEXT</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></button>
@@ -461,7 +463,8 @@
     Blue:   { color: '#b5cbdd', envMapIntensity: 1.5,  rIndexDelta: .004, absorptionFactor: 1,   refractiveIndex: 2.4, gammaFactor: 1.09, boostFactors: [2, 2, 2],   reflectivity: .46 },
     Green:  { color: '#c9e3d3', envMapIntensity: 1.5,  rIndexDelta: .004, absorptionFactor: 1,   refractiveIndex: 2.4, gammaFactor: 1.09, boostFactors: [2, 2, 2],   reflectivity: .46 }
   };
-  var paveColor = PAVE_LOOKS[params.get('pave')] ? params.get('pave') : 'White';
+  // Own keys only: a plain lookup would also accept "constructor", "toString" and other Object keys
+  var paveColor = Object.prototype.hasOwnProperty.call(PAVE_LOOKS, params.get('pave')) ? params.get('pave') : 'White';
   function isPaveAxis(a) { return a.key !== 'shank' && /pav/i.test(a.key + ' ' + (a.label || '')); }
   function paveAxis() {
     var opts = Object.keys(PAVE_LOOKS).map(function (c) { return { key: c, label: c, state: c === paveColor ? 'selected' : 'available' }; });
@@ -681,7 +684,8 @@
   var progressEl = document.getElementById('progress');
   var backBtn = document.getElementById('back'), nextBtn = document.getElementById('next'), nextLabel = document.getElementById('next-label');
 
-  function show(i) {
+  // user: the shopper moved (Next, Back, a step number, Change), as opposed to a rebuild of the panel
+  function show(i, user) {
     var total = stepKeys.length + 1; // option steps plus the review
     var next = Math.max(0, Math.min(i, total - 1));
     stepsEl.setAttribute('data-dir', next > current ? 'fwd' : next < current ? 'back' : 'none');
@@ -697,10 +701,28 @@
     nextBtn.classList.toggle('secondary', !last);
     nextBtn.classList.toggle('final', last);
     nextLabel.textContent = last ? 'SELECT THIS RING' : 'NEXT: ' + (current + 1 < stepKeys.length ? stepNames[current + 1] : 'REVIEW').toUpperCase();
+    if (!user) return;
+    var panel = visiblePanel();
+    var value = panel && panel.querySelector('.step-value');
+    announceEl.textContent = 'Step ' + (current + 1) + ' of ' + total + ', ' + (last ? 'Your ring' : stepNames[current]) + (value && value.textContent ? ', ' + value.textContent : '');
+    keepStepInView();
   }
-  backBtn.addEventListener('click', function () { show(current - 1); });
+  var announceEl = document.getElementById('step-announce');
+  function visiblePanel() { return [].filter.call(stepsEl.querySelectorAll('.step-panel'), function (p) { return !p.hidden; })[0]; }
+  // A shorter step can land above the screen, or behind the 3D view that sticks to the top on phones.
+  // Then scroll so the step numbers sit right under the 3D view (or at the top of the screen on desktop).
+  function keepStepInView() {
+    var stage = document.querySelector('.stage'), panel = visiblePanel();
+    if (!stage || !panel) return;
+    var s = stage.getBoundingClientRect(), p = panel.getBoundingClientRect(), bar = progressEl.getBoundingClientRect();
+    var stacked = s.left < p.right && s.right > p.left; // the 3D view sits above the steps (phone layout)
+    var top = stacked ? s.bottom : 0;
+    if (bar.top >= top && p.top < innerHeight - 80) return;
+    window.scrollBy({ top: bar.top - top - 12, behavior: calm ? 'auto' : 'smooth' });
+  }
+  backBtn.addEventListener('click', function () { show(current - 1, true); });
   nextBtn.addEventListener('click', function () {
-    if (current === stepKeys.length) selectRing(); else show(current + 1);
+    if (current === stepKeys.length) selectRing(); else show(current + 1, true);
   });
 
   var mixMetals = false;
@@ -744,7 +766,7 @@
       b.firstChild.textContent = label;
       b.title = title;
       b.setAttribute('aria-label', 'Step ' + (idx + 1) + ': ' + title);
-      b.addEventListener('click', function () { show(idx); });
+      b.addEventListener('click', function () { show(idx, true); });
       progressEl.appendChild(b);
     }
     list.forEach(function (x, i) {
@@ -848,7 +870,12 @@
       r.querySelector('.k').textContent = name;
       if (stepIndex >= 0) {
         r.querySelector('button').setAttribute('aria-label', 'Change ' + name.toLowerCase());
-        r.querySelector('button').addEventListener('click', function () { show(stepIndex); });
+        r.querySelector('button').addEventListener('click', function () {
+          show(stepIndex, true);
+          // The review panel is now hidden, so its button cannot keep the focus: move it to the picked option
+          var panel = visiblePanel(), t = panel && (panel.querySelector('.tile[aria-pressed="true"]:not(:disabled)') || panel.querySelector('.tile:not(:disabled)'));
+          if (t) t.focus({ preventScroll: true });
+        });
       }
       rv.appendChild(r);
       return r;
@@ -962,9 +989,12 @@
     return parts.join(' · ');
   }
 
+  // The builder cannot open: say so in plain words, point to WhatsApp (it still works) and hide controls that do nothing
   function fail(e) {
-    console.warn(e);
-    statusEl.textContent = 'The 3D view could not load (' + (e && e.code ? e.code : 'error') + ')';
+    console.warn('configurator could not load', e && e.code ? e.code : e);
+    statusEl.textContent = 'The 3D builder is not available right now. Message us on WhatsApp and we will help you design your ring';
+    document.querySelector('.step-nav').style.display = 'none';
+    progressEl.style.display = 'none';
   }
 
   // Open the page at the builder (from the breadcrumb), not at the top of the header.
@@ -986,7 +1016,15 @@
     if (!api) { fail({ code: 'SDK' }); return; }
     var opts = { drive: CONFIG.drive, id: CONFIG.id, price: false };
     if (params.get('state')) opts.state = params.get('state');
-    api.open(opts).then(function (s) {
+    api.open(opts).catch(function (e) {
+      // A ring link made before the options changed (or cut when copied) no longer fits: open the default ring
+      if (!opts.state) throw e;
+      console.warn('ring link no longer fits this builder, opening the default ring', e && e.code);
+      delete opts.state;
+      params.delete('state');
+      try { history.replaceState(null, '', location.pathname + (params.toString() ? '?' + params : '') + location.hash); } catch (err) {}
+      return api.open(opts);
+    }).then(function (s) {
       session = s;
       render();
       session.on('selection:changed', function () {
