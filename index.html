@@ -447,7 +447,7 @@
   // Side stones (pavé) colour. iJewel holds the stones on material layer Gem 02 with one White option:
   // a full colour list there multiplies every combination and breaks iJewel's 256 KB publish limit.
   // So the page recolours those stones itself, with the same diamond settings iJewel uses for the centre stone.
-  // The step sits right after Band and shows only while a band with side stones is chosen.
+  // The choice lives inside the Band step and slides open only while a band with side stones is chosen.
   var PAVE_LABEL = 'Side stones';
   var PAVE_LAYER = 'Gem 02';
   var PAVE_KEY = 'sideStones';
@@ -603,7 +603,6 @@
 
   function visibleAxes() {
     var axes = session.axes().filter(function (a) { return a.active !== false && !isPaveAxis(a); });
-    if (paveChosen()) axes.push(paveAxis().axis);
     axes.sort(function (a, b) { return axisRank(a) - axisRank(b); });
     // A list with a single option (Carat is fixed at 2 ct) has nothing to choose, so it gets no step.
     // It still goes into the WhatsApp summary, which reads every axis.
@@ -623,6 +622,7 @@
       if (!step) return;
       var current = x.opts.filter(function (o) { return o.state === 'selected'; })[0];
       var text = current ? current.label : '';
+      if (x.axis.key === 'shank' && paveChosen()) text += ' · ' + paveColor + ' side stones';
       if (x.axis.key === 'headMetal' && mixMetals) {
         var sel = session.selection(), band = list.filter(function (y) { return y.axis.key === 'shankMetal'; })[0];
         var bo = band && band.opts.filter(function (o) { return o.key === sel.shankMetal; })[0];
@@ -640,6 +640,17 @@
         b.title = opt.state === 'adjusts' ? 'Picking this changes another choice to keep the ring makeable' : (opt.reason || '');
       });
     });
+    renderSide();
+  }
+
+  function renderSide() {
+    var sideRow = stepsEl.querySelector('.side-stones');
+    if (!sideRow) return;
+    var on = paveChosen();
+    sideRow.classList.toggle('open', on);
+    sideRow.inert = !on;
+    sideRow.setAttribute('aria-hidden', on ? 'false' : 'true');
+    sideRow.querySelectorAll('.tile').forEach(function (b) { b.setAttribute('aria-pressed', b.getAttribute('data-opt') === paveColor ? 'true' : 'false'); });
   }
 
   // A changed value fades in instead of jumping
@@ -741,6 +752,25 @@
         }));
       });
       step.appendChild(row);
+      if (axis.key === 'shank') {
+        // Side stones colour, opens under the bands when a pavé band is picked
+        var side = paveAxis();
+        var sideRow = document.createElement('div');
+        sideRow.className = 'band-metal side-stones';
+        sideRow.setAttribute('data-axis', PAVE_KEY);
+        sideRow.innerHTML = '<div class="band-metal-inner"><div class="step-count">Side stones</div></div>';
+        var srow = document.createElement('div');
+        srow.className = 'opts';
+        srow.setAttribute('role', 'group');
+        srow.setAttribute('aria-label', 'Side stones');
+        side.opts.forEach(function (opt, n) {
+          var t = tileFor(side.axis, opt, function () { setPave(opt.key); });
+          t.style.setProperty('--i', n);
+          srow.appendChild(t);
+        });
+        sideRow.firstChild.appendChild(srow);
+        step.appendChild(sideRow);
+      }
       if (axis.key === 'headMetal' && bandMetal) {
         var mix = document.createElement('label');
         mix.className = 'mix';
