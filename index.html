@@ -254,6 +254,7 @@
   .band-metal.open .step-count { animation: fade var(--t-enter) var(--ease) both; animation-delay: 80ms; }
   .review { border-top: 1px solid var(--line); }
   .review-row { display: grid; grid-template-columns: 112px minmax(0, 1fr) auto; align-items: center; gap: 12px; min-height: 40px; border-bottom: 1px solid var(--line); font-size: 13px; }
+  .review-row[hidden] { display: none; }
   .review-row .k { color: var(--text-3); }
   .review-row .v { color: var(--text); }
   .review-row button { padding: 8px 0; border: 0; background: none; color: var(--green); font: inherit; font-size: 12px; text-decoration: underline; text-decoration-color: rgba(9,54,47,.35); text-underline-offset: 3px; cursor: pointer; transition: text-decoration-color var(--t-hover) var(--ease), text-underline-offset var(--t-hover) var(--ease); }
@@ -512,6 +513,12 @@
     var o = band && (band.options || []).filter(function (x) { return x.key === sel.shank; })[0];
     return !!o && /pav/i.test(o.label);
   }
+  // The label of a list that has one option only (Carat is fixed at 2 ct), or ''
+  function fixedValue(key) {
+    var a = session.axes().filter(function (x) { return x.key === key; })[0];
+    var o = a && (a.options || []).filter(function (x) { return x.state !== 'hidden'; });
+    return o && o.length === 1 ? o[0].label : '';
+  }
   function axisName(a) { return (a.virtual || isPaveAxis(a)) ? PAVE_LABEL : (AXES[a.key] || a.label); }
   function axisRank(a) { return (a.virtual || isPaveAxis(a)) ? ORDER.indexOf('shank') + .5 : (ORDER.indexOf(a.key) < 0 ? 99 : ORDER.indexOf(a.key)); }
   var METALS = { white: '#E4E4E0', rose: '#E3AE99', yellow: '#DDBB6A' };
@@ -621,23 +628,29 @@
       var step = stepsEl.querySelector('[data-axis="' + x.axis.key + '"]');
       if (!step) return;
       var current = x.opts.filter(function (o) { return o.state === 'selected'; })[0];
-      var text = current ? current.label : '';
+      var text = current ? current.label : '', reviewText = text;
+      var carat = fixedValue('carat');
+      if (x.axis.key === 'shape' && carat) text += ' · ' + carat;
       if (x.axis.key === 'shank' && paveChosen()) text += ' · ' + paveColor + ' side stones';
       if (x.axis.key === 'headMetal' && mixMetals) {
         var sel = session.selection(), band = list.filter(function (y) { return y.axis.key === 'shankMetal'; })[0];
         var bo = band && band.opts.filter(function (o) { return o.key === sel.shankMetal; })[0];
-        text = 'Head ' + text + ' · Band ' + (bo ? bo.label : '');
+        var bl = bo ? bo.label : '';
+        // One metal reads as one name; two metals drop the repeated karat
+        text = bl === text ? text : 'Head ' + text.replace(/ 18K$/, '') + ' · Band ' + bl.replace(/ 18K$/, '');
       }
       var sv = step.querySelector('.step-value');
       if (sv && sv.textContent !== text) { var had = sv.textContent; sv.textContent = text; if (had) soften(sv); }
       var rr = stepsEl.querySelector('[data-review="' + x.axis.key + '"] .v');
-      if (rr) rr.textContent = text;
+      if (rr) rr.textContent = reviewText;
       x.opts.forEach(function (opt) {
         var b = step.querySelector('[data-opt="' + CSS.escape(opt.key) + '"]');
         b.setAttribute('aria-pressed', opt.state === 'selected' ? 'true' : 'false');
         b.disabled = opt.state === 'blocked' || opt.state === 'no-file';
         b.classList.toggle('adjusts', opt.state === 'adjusts');
-        b.title = opt.state === 'adjusts' ? 'Picking this changes another choice to keep the ring makeable' : (opt.reason || '');
+        b.title = opt.state === 'adjusts' ? 'Picking this changes another choice to keep the ring makeable'
+          : opt.state === 'no-file' ? 'Not available yet'
+          : opt.state === 'blocked' ? 'Not available with your other choices' : '';
       });
     });
     renderSide();
@@ -651,6 +664,8 @@
     sideRow.inert = !on;
     sideRow.setAttribute('aria-hidden', on ? 'false' : 'true');
     sideRow.querySelectorAll('.tile').forEach(function (b) { b.setAttribute('aria-pressed', b.getAttribute('data-opt') === paveColor ? 'true' : 'false'); });
+    var rr = stepsEl.querySelector('[data-review="' + PAVE_KEY + '"]');
+    if (rr) { rr.hidden = !on; rr.querySelector('.v').textContent = paveColor; }
   }
 
   // A changed value fades in instead of jumping
@@ -822,15 +837,26 @@
     review.hidden = true;
     review.innerHTML = '<div class="step-count">Step ' + total + ' of ' + total + '</div><div class="step-title"><span class="name">Your ring</span></div><div class="review"></div><p class="hint" id="picked-text" hidden></p>';
     var rv = review.querySelector('.review');
-    list.forEach(function (x, i) {
+    // One row per choice. Fixed choices (Carat) have no Change; the Metal step gives two rows.
+    function reviewRow(key, name, stepIndex) {
       var r = document.createElement('div');
       r.className = 'review-row';
-      r.setAttribute('data-review', x.axis.key);
-      r.innerHTML = '<span class="k"></span><span class="v"></span><button type="button">Change</button>';
-      r.querySelector('.k').textContent = stepNames[i];
-      r.querySelector('button').setAttribute('aria-label', 'Change ' + stepNames[i]);
-      r.querySelector('button').addEventListener('click', function () { show(i); });
+      r.setAttribute('data-review', key);
+      r.innerHTML = '<span class="k"></span><span class="v"></span>' + (stepIndex < 0 ? '<span></span>' : '<button type="button">Change</button>');
+      r.querySelector('.k').textContent = name;
+      if (stepIndex >= 0) {
+        r.querySelector('button').setAttribute('aria-label', 'Change ' + name.toLowerCase());
+        r.querySelector('button').addEventListener('click', function () { show(stepIndex); });
+      }
       rv.appendChild(r);
+      return r;
+    }
+    list.forEach(function (x, i) {
+      var key = x.axis.key;
+      if (key === 'headMetal' && bandMetal) { reviewRow('headMetal', 'Head metal', i); reviewRow('shankMetal', 'Band metal', i); return; }
+      reviewRow(key, stepNames[i], i);
+      if (key === 'shape' && fixedValue('carat')) reviewRow('carat', 'Carat', -1).querySelector('.v').textContent = fixedValue('carat');
+      if (key === 'shank') reviewRow(PAVE_KEY, 'Side stones', i).hidden = true;
     });
     stepsEl.appendChild(review);
     show(Math.min(current, total - 1));
