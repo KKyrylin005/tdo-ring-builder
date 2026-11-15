@@ -479,7 +479,11 @@
       if (!o.isMesh || !o.material || (layer !== PAVE_LAYER && o.material.name !== PAVE_LAYER)) return;
       seen = true;
       var m = o.material, u = m.uniforms || {};
-      if (m.__tdoPave === paveColor) return;
+      // iJewel rewrites this same material when a model reloads, so compare values, not a flag
+      var col = m.color && m.color.getHexString ? '#' + m.color.getHexString() : '';
+      var ri = u.refractiveIndex ? u.refractiveIndex.value : m.refractiveIndex;
+      var rf = u.reflectivity ? u.reflectivity.value : m.reflectivity;
+      if (col === look.color && ri === look.refractiveIndex && rf === look.reflectivity) return;
       Object.keys(look).forEach(function (k) {
         var val = look[k];
         if (k === 'color') { if (m.color && m.color.set) m.color.set(val); if (u.color && u.color.value && u.color.value.set) u.color.value.set(val); return; }
@@ -487,20 +491,21 @@
         if (k in m) m[k] = val;
         if (u[k]) u[k].value = val;
       });
-      m.__tdoPave = paveColor;
       m.needsUpdate = true;
       changed = true;
     });
     if (changed && v.setDirty) v.setDirty();
     return seen && !changed;
   }
-  // Models and materials reload when a choice changes, so keep checking for a few seconds after each change.
+  // Models and materials reload when a choice changes: check quickly right after a change, then calmly in the
+  // background, since iJewel can repaint the stones a few seconds later.
   var paveTimer = null;
   function watchPave() {
     clearInterval(paveTimer);
     var tries = 0;
-    paveTimer = setInterval(function () { tries++; if ((applyPave() && tries > 8) || tries > 40) clearInterval(paveTimer); }, 250);
+    paveTimer = setInterval(function () { applyPave(); if (++tries > 30) clearInterval(paveTimer); }, 100);
   }
+  setInterval(function () { if (session) applyPave(); }, 600);
   function setPave(c) { paveColor = c; render(); updateWhatsApp(); watchPave(); }
   function paveChosen() {
     var sel = session.selection(), band = session.axes().filter(function (a) { return a.key === 'shank'; })[0];
