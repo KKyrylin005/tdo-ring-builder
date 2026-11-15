@@ -444,6 +444,17 @@
     head: 'Prongs', headMetal: 'Metal', shankMetal: 'Band metal'
   };
   var ORDER = Object.keys(AXES);
+  // The pavé stones have their own colour list in iJewel (material layer Gem 02). Its key is set by iJewel,
+  // so it is found by name. The step sits right after Band and shows only while a pavé band is chosen.
+  var PAVE_LABEL = 'Pavé stones';
+  function isPaveAxis(a) { return a.key !== 'shank' && /pav/i.test(a.key + ' ' + (a.label || '')); }
+  function paveChosen() {
+    var sel = session.selection(), band = session.axes().filter(function (a) { return a.key === 'shank'; })[0];
+    var o = band && (band.options || []).filter(function (x) { return x.key === sel.shank; })[0];
+    return !!o && /pav/i.test(o.key + ' ' + o.label);
+  }
+  function axisName(a) { return isPaveAxis(a) ? PAVE_LABEL : (AXES[a.key] || a.label); }
+  function axisRank(a) { return isPaveAxis(a) ? ORDER.indexOf('shank') + .5 : (ORDER.indexOf(a.key) < 0 ? 99 : ORDER.indexOf(a.key)); }
   var METALS = { white: '#E4E4E0', rose: '#E3AE99', yellow: '#DDBB6A' };
   var STONES = { white: '#F5F7F9', yellow: '#F1DE96', pink: '#F0C3CF', blue: '#B9CFEC', green: '#C1E0CA' };
 
@@ -530,11 +541,9 @@
   var builtFor = '';
 
   function visibleAxes() {
-    var axes = session.axes().filter(function (a) { return a.active !== false; });
-    axes.sort(function (a, b) {
-      var ia = ORDER.indexOf(a.key), ib = ORDER.indexOf(b.key);
-      return (ia < 0 ? 99 : ia) - (ib < 0 ? 99 : ib);
-    });
+    var pave = paveChosen();
+    var axes = session.axes().filter(function (a) { return a.active !== false && (pave || !isPaveAxis(a)); });
+    axes.sort(function (a, b) { return axisRank(a) - axisRank(b); });
     // A list with a single option (Carat is fixed at 2 ct) has nothing to choose, so it gets no step.
     // It still goes into the WhatsApp summary, which reads every axis.
     return axes.map(function (a) {
@@ -633,7 +642,7 @@
     stepsEl.innerHTML = '';
     progressEl.innerHTML = '';
     stepKeys = list.map(function (x) { return x.axis.key; });
-    stepNames = list.map(function (x) { return AXES[x.axis.key] || x.axis.label; });
+    stepNames = list.map(function (x) { return axisName(x.axis); });
     progressEl.style.setProperty('--n', list.length + 1);
     var total = list.length + 1;
     function seg(label, idx, title) {
@@ -820,9 +829,10 @@
 
   function summary() {
     var sel = session.selection();
-    return session.axes().filter(function (a) { return sel[a.key]; }).map(function (a) {
+    var pave = paveChosen();
+    return session.axes().filter(function (a) { return sel[a.key] && (pave || !isPaveAxis(a)); }).map(function (a) {
       var o = (a.options || []).filter(function (x) { return x.key === sel[a.key]; })[0];
-      return (AXES[a.key] || a.label) + ': ' + (o ? o.label : sel[a.key]);
+      return axisName(a) + ': ' + (o ? o.label : sel[a.key]);
     }).join(' · ');
   }
 
