@@ -201,6 +201,12 @@
   #ring-3d::backdrop { background: #fff; }
   #ring-3d :fullscreen { background: #fff !important; }
   #ring-3d.ready .status { opacity: 0; pointer-events: none; }
+  /* Carat switch: the new 3D view loads under cover and fades in over the old one */
+  #ring-3d .ijewel-view { position: absolute !important; inset: 0; transition: opacity 400ms var(--ease); }
+  #ring-3d .ijewel-view.incoming { opacity: 0; pointer-events: none; }
+  #ring-3d:not(.ready) .ijewel-view { opacity: 0; }
+  #ring-3d[data-note]::after { content: attr(data-note); position: absolute; left: 0; right: 0; bottom: 16px; text-align: center; font-size: 12px; color: var(--text-2); pointer-events: none; }
+  #ring-3d.switching::after { content: 'Loading'; position: absolute; left: 0; right: 0; bottom: 16px; text-align: center; font-size: 12px; color: var(--text-3); pointer-events: none; }
 
   .panel { display: flex; flex-direction: column; gap: 32px; }
   .head-block { display: flex; flex-direction: column; gap: 12px; padding-bottom: 24px; border-bottom: 1px solid var(--line); }
@@ -1044,9 +1050,12 @@
     var box = document.getElementById('ring-3d');
     return api.mountViewer(box, s, VIEW_OPTS).then(function (h) {
       viewerHandle = h;
-      box.classList.add('ready');
       watchViewerButtons(box);
       watchPave();
+      // Show the ring only once it is fully drawn, not the unlit first frames
+      return viewerReady(h, 20000).then(function () { return viewerStill(h, 12, 8000); });
+    }).then(function () {
+      box.classList.add('ready');
     });
   }
   // The selected option name of every list, to carry the ring over to another configurator
@@ -1071,28 +1080,81 @@
       }, Promise.resolve());
     });
   }
+  // The 3D view of a new carat loads hidden over the current one and fades in only once it is fully drawn:
+  // a fresh viewer first shows unlit black metal, then plays its camera fit, and neither should be seen.
+  function viewerReady(h, maxMs) {
+    return new Promise(function (res) {
+      var c = h && h.controller;
+      if (!c || c.ready) return res();
+      var off = c.on('ready', function () { try { if (typeof off === 'function') off(); } catch (e) {} res(); });
+      setTimeout(res, maxMs);
+    });
+  }
+  // Resolves once the viewer has drawn the same still image for a number of frames (camera fit done, materials in)
+  function viewerStill(h, frames, maxMs) {
+    return new Promise(function (res) {
+      var t0 = Date.now();
+      (function tick() {
+        var v = h && h.viewer, rm = v && v.renderManager;
+        if (!rm || rm.frameCount >= frames || Date.now() - t0 > maxMs) return res();
+        if (document.hidden) setTimeout(tick, 100); else requestAnimationFrame(tick);
+      })();
+    });
+  }
+  // Keep the angle the shopper turned the ring to
+  function copyCamera(from, to) {
+    try {
+      var a = from.viewer.scene.activeCamera, b = to.viewer.scene.activeCamera;
+      b.position.copy(a.position);
+      b.target.copy(a.target);
+      b.positionTargetUpdated(true);
+    } catch (e) { console.warn('camera copy', e); }
+  }
   function switchCarat(label) {
     var i = CARATS.map(function (c) { return c[0]; }).indexOf(label);
     if (i < 0 || i === caratIdx || !session || busy) return;
     var want = labelsOf(session), token = ++switchToken, box = document.getElementById('ring-3d');
+    var old = viewerHandle, layer = null, fresh = null, back = caratIdx;
     busy = true;
     caratIdx = i;
     CONFIG.id = CARATS[i][1];
     render();
-    box.classList.remove('ready');
-    statusEl.textContent = 'Loading your ring';
+    box.classList.add('switching');
     api.open({ drive: CONFIG.drive, id: CONFIG.id, price: false }).then(function (s) {
-      if (token !== switchToken) return;
       return applyLabels(s, want).then(function () {
-        if (viewerHandle) { try { viewerHandle.destroy(); } catch (e) {} viewerHandle = null; }
-        useSession(s);
-        return mount(s);
+        var before = box.querySelectorAll('.ijewel-view').length;
+        var p = api.mountViewer(box, s, VIEW_OPTS);
+        layer = box.querySelectorAll('.ijewel-view')[before] || null;
+        if (layer) layer.classList.add('incoming');
+        return p.then(function (h) {
+          fresh = h;
+          return viewerReady(h, 20000);
+        }).then(function () { return viewerStill(fresh, 12, 8000); }).then(function () {
+          if (old) copyCamera(old, fresh);
+          return viewerStill(fresh, 8, 3000);
+        }).then(function () {
+          session = s;
+          useSession(s);
+          viewerHandle = fresh;
+          watchViewerButtons(box);
+          watchPave();
+          return viewerStill(fresh, 4, 1000);
+        }).then(function () {
+          if (layer) layer.classList.remove('incoming');
+          setTimeout(function () { if (old) { try { old.destroy(); } catch (e) {} } }, 450);
+        });
       });
     }).catch(function (e) {
       console.warn('carat switch failed', e);
-      statusEl.textContent = 'This carat could not load. Please try again';
-      box.classList.add('ready');
-    }).then(function () { if (token === switchToken) { busy = false; render(); } });
+      if (fresh) { try { fresh.destroy(); } catch (err) {} } else if (layer) layer.remove();
+      caratIdx = back;
+      CONFIG.id = CARATS[back][1];
+      box.setAttribute('data-note', 'This carat could not load. Please try again');
+      setTimeout(function () { box.removeAttribute('data-note'); }, 4000);
+    }).then(function () {
+      box.classList.remove('switching');
+      if (token === switchToken) { busy = false; render(); }
+    });
   }
 
   (function start() {
