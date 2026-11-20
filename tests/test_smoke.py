@@ -30,3 +30,25 @@ def test_carat_switch_keeps_the_other_choices(page, base_url):
     assert 'ct%3D3' in page.locator('#wa-btn').get_attribute('href')
     assert page.evaluate('window.webGiViewers.length') <= 3
     assert page.errors == []
+
+
+NEW_BANDS = ['Classic', 'Petite Pavé', 'Vintage Bezel', 'Twisted Pavé', 'Split Pavé', 'Flush Accent', 'Side Stone', 'Vintage Side Stone']
+
+
+def test_new_bands_have_icons_and_side_stones(page, base_url):
+    """Chiraj's 8 bands from 18.11: each has its own icon; bands with stones open the side stones colour."""
+    open_builder(page, base_url)
+    page.wait_for_selector('#ring-3d.ready', timeout=90000)
+    go_to_step(page, 'Band')
+    labels = page.locator('#steps [data-axis="shank"] > .opts .tile').evaluate_all('els => els.map(e => e.innerText.trim())')
+    for b in NEW_BANDS:
+        assert b in labels, labels
+    icons = page.locator('#steps [data-axis="shank"] > .opts .tile svg').evaluate_all('els => els.map(e => e.innerHTML)')
+    assert len(set(icons)) == len(icons), 'every band needs its own icon'
+    side = page.locator('#steps .side-stones')
+    page.locator('#steps [data-axis="shank"] > .opts .tile', has_text='Classic').first.click()
+    page.wait_for_function("document.querySelector('[data-axis=\"shank\"] .step-value').textContent.startsWith('Classic')")
+    assert 'open' not in side.get_attribute('class')
+    page.locator('#steps [data-axis="shank"] > .opts .tile', has_text='Vintage Side Stone').first.click()
+    page.wait_for_function("document.querySelector('.side-stones').classList.contains('open')")
+    assert page.errors == []
