@@ -32,23 +32,25 @@ def test_carat_switch_keeps_the_other_choices(page, base_url):
     assert page.errors == []
 
 
-NEW_BANDS = ['Classic', 'Petite Pavé', 'Vintage Bezel', 'Twisted Pavé', 'Split Pavé', 'Flush Accent', 'Side Stone', 'Vintage Side Stone']
+NEW_BANDS = ['Solitaire', 'Pavé', 'Twisted', 'Marquise & round', 'Double pavé', 'Flush accent', 'Side stone', 'Ribbed side stone']
 
 
-def test_new_bands_have_icons_and_side_stones(page, base_url):
-    """Chiraj's 8 bands from 18.11: each has its own icon; bands with stones open the side stones colour."""
+def test_bands_have_icons_and_side_stones(page, base_url):
+    """Chiraj's 8 bands from 18.11, named as in the requirements: each band a shopper can pick has its own icon,
+    and bands with stones open the side stones colour."""
     open_builder(page, base_url)
     page.wait_for_selector('#ring-3d.ready', timeout=90000)
     go_to_step(page, 'Band')
-    labels = page.locator('#steps [data-axis="shank"] > .opts .tile').evaluate_all('els => els.map(e => e.innerText.trim())')
+    tiles = page.locator('#steps [data-axis="shank"] > .opts .tile')
+    labels = tiles.evaluate_all('els => els.map(e => e.innerText.trim())')
     for b in NEW_BANDS:
         assert b in labels, labels
-    icons = page.locator('#steps [data-axis="shank"] > .opts .tile svg').evaluate_all('els => els.map(e => e.innerHTML)')
-    assert len(set(icons)) == len(icons), 'every band needs its own icon'
+    icons = tiles.evaluate_all('els => els.filter(e => !e.disabled && e.getAttribute("aria-disabled") !== "true").map(e => e.querySelector("svg").innerHTML)')
+    assert len(set(icons)) == len(icons), 'every band a shopper can pick needs its own icon'
     side = page.locator('#steps .side-stones')
-    page.locator('#steps [data-axis="shank"] > .opts .tile', has_text='Classic').first.click()
-    page.wait_for_function("document.querySelector('[data-axis=\"shank\"] .step-value').textContent.startsWith('Classic')")
+    page.locator('#steps [data-axis="shank"] > .opts .tile', has_text='Solitaire').first.click()
+    page.wait_for_function("document.querySelector('[data-axis=\"shank\"] .step-value').textContent.startsWith('Solitaire')")
     assert 'open' not in side.get_attribute('class')
-    page.locator('#steps [data-axis="shank"] > .opts .tile', has_text='Vintage Side Stone').first.click()
+    page.locator('#steps [data-axis="shank"] > .opts .tile', has_text='Ribbed side stone').first.click()
     page.wait_for_function("document.querySelector('.side-stones').classList.contains('open')")
     assert page.errors == []

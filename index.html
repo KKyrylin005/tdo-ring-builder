@@ -528,8 +528,9 @@
   }
   setInterval(function () { if (session) applyPave(); }, 600);
   function setPave(c) { paveColor = c; render(); updateWhatsApp(); watchPave(); }
-  // Bands with side stones, by label: every pavé band, plus the bezel, accent and side-stone bands
-  function hasSideStones(label) { return /pav|bezel|accent|side stone/i.test(label || ''); }
+  // Bands with side stones, by label: every pavé band, the twisted band (one strand is set with stones),
+  // plus the marquise, bezel, accent and side-stone bands
+  function hasSideStones(label) { return /pav|twist|marquise|bezel|accent|side stone/i.test(label || ''); }
   function paveChosen() {
     var sel = session.selection(), band = session.axes().filter(function (a) { return a.key === 'shank'; })[0];
     var o = band && (band.options || []).filter(function (x) { return x.key === sel.shank; })[0];
@@ -636,14 +637,14 @@
     if (axis.key === 'shank') {
       // By label only: iJewel keys can carry old names (Solitaire's key is "solitairepave")
       var l = opt.label.toLowerCase();
-      if (l.indexOf('twisted pav') > -1) return BANDS.twistedPave;
-      if (l.indexOf('split pav') > -1) return BANDS.splitPave;
+      // The Twisted band has one strand set with stones (requirements, 20.11)
+      if (l.indexOf('twist') > -1) return BANDS.twistedPave;
+      if (l.indexOf('split pav') > -1 || l.indexOf('double pav') > -1) return BANDS.splitPave;
       if (l.indexOf('petite pav') > -1) return BANDS.petitePave;
       if (l.indexOf('pav') > -1) return BANDS.pave;
-      if (l.indexOf('twist') > -1) return BANDS.twisted;
-      if (l.indexOf('bezel') > -1) return BANDS.vintageBezel;
+      if (l.indexOf('marquise') > -1 || l.indexOf('bezel') > -1) return BANDS.vintageBezel;
       if (l.indexOf('flush') > -1) return BANDS.flushAccent;
-      if (l.indexOf('vintage side') > -1) return BANDS.vintageSideStone;
+      if (l.indexOf('ribbed') > -1 || l.indexOf('vintage side') > -1) return BANDS.vintageSideStone;
       if (l.indexOf('side stone') > -1) return BANDS.sideStone;
       if (l.indexOf('classic') > -1) return BANDS.classic;
       return BANDS.solitaire;

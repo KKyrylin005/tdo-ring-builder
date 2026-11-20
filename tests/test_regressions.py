@@ -20,7 +20,7 @@ def test_pave_param_does_not_rebuild_the_material_in_a_loop(page, base_url):
     go_to_step(page, 'Band')
     tile(page, 'shank', 'Pavé').click()
     version = """() => { const vs = window.webGiViewers; const v = vs[vs.length - 1]; let m = null;
-      v.scene.modelRoot.traverse(o => { if (o.isMesh && o.material && o.material.name === 'Gem 02') m = o.material; });
+      v.scene.modelRoot.traverse(o => { if (o.isMesh && o.material && ['Gem 02', 'Gem 05'].includes(o.material.name)) m = o.material; });
       return m ? m.version : null; }"""
     page.wait_for_function(f"({version})() !== null", timeout=60000)
     page.wait_for_timeout(4000)
