@@ -370,7 +370,7 @@
   <section class="builder" aria-label="Build your ring">
     <div class="stage">
       <div id="ring-3d" role="img" aria-label="3D view of your ring"><div class="status" id="status">Loading your ring</div><div class="zoom-hint" id="zoom-hint" aria-hidden="true">Use Ctrl + scroll to zoom</div></div>
-      <div class="note">3D preview of your ring. Every ring is crafted to order to these choices</div>
+      <div class="note">3D preview of your ring, shown with a 2 ct centre stone. Other carat sizes are available on request: chat with your specialist. Every ring is crafted to order to these choices</div>
     </div>
 
     <div class="panel">
@@ -447,14 +447,14 @@
   // Which iJewel configurator to show. Default: the TDO MVP configurator built on the designer's file names
   // (HD01_RD_2.0, SH01). Switch with ?id=<folder id>, e.g. ?id=arvCTU7mSZOkmvEHxgpYKQ for the old test configurator.
   var params = new URLSearchParams(location.search);
-  // One iJewel configurator per carat: one configurator with every carat is over iJewel's 256 KB publish limit.
-  // The Carat step switches between them and carries the other choices over by their names.
-  // ?ct=1|2|3 opens a carat; ?id=<folder id> opens one configurator on its own (no Carat step).
-  var CARATS = [['1.00 ct', 'YxZQ0ob2Tpyt4rPiDTT9Ig'], ['2.00 ct', 'Lx9tQOmwTP6HwZtD5MYzbQ'], ['3.00 ct', 'CDyhYUYdScqiRJ1xkEkr2A']];
-  var caratMode = !params.get('id');
-  var caratIdx = Math.max(0, ['1', '2', '3'].indexOf(params.get('ct')));
-  if (!params.get('ct')) caratIdx = 1;
-  var CONFIG = { drive: 'drive', id: params.get('id') || CARATS[caratIdx][1] };
+  // Every ring is shown with a 2 ct centre stone (decided 23.11): one iJewel configurator, no Carat step.
+  // Its Carat list has the single option 2.00 ct, which shows next to the shape. Other sizes are on request.
+  // ?id=<folder id> opens another configurator. The carat switching below stays off (caratMode is false).
+  var CONFIG_ID = 'fdPslOfPR3umAuJ7DEZJrA';
+  var CARATS = [['2.00 ct', CONFIG_ID]];
+  var caratMode = false;
+  var caratIdx = 0;
+  var CONFIG = { drive: 'drive', id: params.get('id') || CONFIG_ID };
 
   // TDO wording and order for the axes. Axes not listed keep their iJewel label and go last.
   var AXES = {
@@ -485,7 +485,7 @@
     return { axis: { key: PAVE_KEY, label: PAVE_LABEL, kind: 'material', options: opts, virtual: 'pave' }, opts: opts };
   }
   function ringLink() {
-    return location.origin + location.pathname + (caratMode ? '?ct=' + (caratIdx + 1) : '?id=' + CONFIG.id) + '&state=' + encodeURIComponent(session.stateString()) +
+    return location.origin + location.pathname + '?' + (CONFIG.id !== CONFIG_ID ? 'id=' + CONFIG.id + '&' : '') + 'state=' + encodeURIComponent(session.stateString()) +
       (paveChosen() && paveColor !== 'White' ? '&pave=' + paveColor : '');
   }
   function viewers3d() { return (window.webGiViewers || []).slice(); }
@@ -564,7 +564,14 @@
     var lines = t.map(function (q, i) { return '<line x1="' + q[0].toFixed(2) + '" y1="' + q[1].toFixed(2) + '" x2="' + o[i][0].toFixed(2) + '" y2="' + o[i][1].toFixed(2) + '"/>'; }).join('');
     return '<ellipse cx="' + cx + '" cy="' + cy + '" rx="' + rx + '" ry="' + ry + '"/>' + poly(t) + lines;
   }
+  // Order matters: the first name found in the option wins, so "elongated" goes before "cushion"
   var SHAPES = {
+    elongated: '<rect x="10" y="4" width="20" height="32" rx="7"/><rect x="15.5" y="11" width="9" height="18" rx="3"/><path d="M12 6.5l4.5 6M28 6.5l-4.5 6M12 33.5l4.5-6M28 33.5l-4.5-6"/>',
+    cushion: '<rect x="6" y="6" width="28" height="28" rx="8"/><rect x="13.5" y="13.5" width="13" height="13" rx="3.5"/><path d="M8.5 8.5l6 6M31.5 8.5l-6 6M8.5 31.5l6-6M31.5 31.5l-6-6"/>',
+    heart: '<path d="M20 34C12 27.5 5.5 21.5 5.5 14.5a7.25 7.25 0 0 1 14.5-3 7.25 7.25 0 0 1 14.5 3C34.5 21.5 28 27.5 20 34Z"/><path d="M20 27c-3.8-3-7-6-7-9.5a3.5 3.5 0 0 1 7-1 3.5 3.5 0 0 1 7 1c0 3.5-3.2 6.5-7 9.5Z"/><path d="M20 11.5v5M20 27v7"/>',
+    radiant: '<path d="M14 5h12l4 4v22l-4 4H14l-4-4V9Z"/><path d="M16 11h8l1.5 1.5v15L24 29h-8l-1.5-1.5v-15Z"/><path d="M10 9l6 2M30 9l-6 2M10 31l6-2M30 31l-6-2M20 5v6M20 29v6"/>',
+    princess: '<path d="M6 6h28v28H6Z"/><path d="M13 13h14v14H13Z"/><path d="M6 6l7 7M34 6l-7 7M6 34l7-7M34 34l-7-7"/>',
+    asscher: '<path d="M12 5h16l7 7v16l-7 7H12l-7-7V12Z"/><path d="M14.5 10h11l4.5 4.5v11L25.5 30h-11L10 25.5v-11Z"/><path d="M17 15h6l2 2v6l-2 2h-6l-2-2v-6Z"/>',
     round: brilliant(20, 20, 14, 14),
     oval: brilliant(20, 20, 10.5, 15),
     pear: '<path d="M20 4.5C25.5 11 31 17.5 31 25a11 11 0 0 1-22 0c0-7.5 5.5-14 11-20.5Z"/><ellipse cx="20" cy="25" rx="5" ry="5.5"/><path d="M20 4.5 20 19.5M9.5 22.5l5.6 1.4M30.5 22.5l-5.6 1.4M12 32.5l4-3.6M28 32.5l-4-3.6"/>',
@@ -631,7 +638,13 @@
   };
   function iconFor(axis, opt) {
     var k = (opt.key + ' ' + opt.label).toLowerCase();
-    if (axis.key === 'shape') { for (var sh in SHAPES) if (k.indexOf(sh) > -1) return SHAPES[sh]; return SHAPES.round; }
+    // Shape by label first: a renamed option keeps its old key (the Princess option's key can still say "pear")
+    if (axis.key === 'shape') {
+      var sl = opt.label.toLowerCase();
+      for (var sh in SHAPES) if (sl.indexOf(sh) > -1) return SHAPES[sh];
+      for (sh in SHAPES) if (k.indexOf(sh) > -1) return SHAPES[sh];
+      return SHAPES.round;
+    }
     if (axis.key === 'carat') return caratIcon(opt.label);
     if (axis.key === 'head') return headIcon(/6/.test(k) && /prong/.test(k) ? 6 : (/4/.test(k) && /prong/.test(k) ? 4 : 0));
     if (axis.key === 'shank') {
