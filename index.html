@@ -536,9 +536,48 @@
   function watchPave() {
     clearInterval(paveTimer);
     var tries = 0;
-    paveTimer = setInterval(function () { applyPave(); if (++tries > 30) clearInterval(paveTimer); }, 100);
+    paveTimer = setInterval(function () { applyPave(); applySquare(); if (++tries > 30) clearInterval(paveTimer); }, 100);
   }
-  setInterval(function () { if (session) applyPave(); }, 600);
+  // Square step cuts (Princess, Asscher, Emerald, Radiant) render with a black centre with iJewel's diamond
+  // settings: their steep pavilions trap the light (Alina's feedback, 23.11). For these shapes the page eases the
+  // centre stone's refraction and lifts its reflections, on top of whatever colour iJewel set.
+  var SQUARE_CUTS = /princess|asscher|emerald|radiant/i;
+  var SQUARE_LOOK = { refractiveIndex: 2.2, boost: 2.0, gamma: 0.75 };
+  function centreShape() {
+    var t = stepsEl && stepsEl.querySelector('[data-axis="shape"] > .opts .tile[aria-pressed="true"]');
+    return t ? t.textContent.trim() : '';
+  }
+  function applySquare() {
+    var on = SQUARE_CUTS.test(centreShape());
+    viewers3d().forEach(function (v) {
+      if (!v || !v.scene || !v.scene.modelRoot) return;
+      var changed = false;
+      v.scene.modelRoot.traverse(function (o) {
+        if (!o.isMesh || !o.material || o.material.name !== 'Gem 01') return;
+        var m = o.material, u = m.uniforms;
+        if (!u || !u.refractiveIndex || !u.boostFactors || !u.gammaFactor) return;
+        var b = u.boostFactors.value, ud = m.userData || (m.userData = {});
+        var cur = [u.refractiveIndex.value, b.x, b.y, b.z, u.gammaFactor.value].join();
+        // iJewel rewrites the material when the colour or model changes: what it wrote becomes the new base
+        if (ud.sqApplied !== cur) { ud.sqBase = { ri: u.refractiveIndex.value, b: [b.x, b.y, b.z], g: u.gammaFactor.value }; ud.sqOn = false; }
+        if (on === !!ud.sqOn) return;
+        var base = ud.sqBase;
+        if (on) {
+          u.refractiveIndex.value = SQUARE_LOOK.refractiveIndex;
+          b.set(base.b[0] * SQUARE_LOOK.boost, base.b[1] * SQUARE_LOOK.boost, base.b[2] * SQUARE_LOOK.boost);
+          u.gammaFactor.value = base.g * SQUARE_LOOK.gamma;
+        } else {
+          u.refractiveIndex.value = base.ri; b.set(base.b[0], base.b[1], base.b[2]); u.gammaFactor.value = base.g;
+        }
+        if ('refractiveIndex' in m) m.refractiveIndex = u.refractiveIndex.value;
+        ud.sqOn = on;
+        ud.sqApplied = [u.refractiveIndex.value, b.x, b.y, b.z, u.gammaFactor.value].join();
+        m.needsUpdate = true; changed = true;
+      });
+      if (changed && v.setDirty) v.setDirty();
+    });
+  }
+  setInterval(function () { if (session) { applyPave(); applySquare(); } }, 600);
   function setPave(c) { paveColor = c; render(); updateWhatsApp(); watchPave(); }
   // Bands with side stones, by label: every pavé band, the twisted band (one strand is set with stones),
   // plus the marquise, bezel, accent and side-stone bands
