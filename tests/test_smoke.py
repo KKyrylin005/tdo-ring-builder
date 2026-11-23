@@ -1,10 +1,13 @@
-from conftest import open_builder, tile, go_to_step
+from conftest import open_builder, tile, go_to_step, section_names, SECTIONS
 
 
-def test_builder_loads_and_has_steps(page, base_url):
+def test_builder_shows_every_choice_on_one_page(page, base_url):
+    """Alina, 23.11: every setting on one page, no steps, no Back and Next."""
     open_builder(page, base_url)
-    names = page.locator('.seg').evaluate_all('els => els.map(e => e.title)')
-    assert names == ['Diamond shape', 'Diamond colour', 'Head style', 'Band', 'Metal', 'Review']
+    assert section_names(page) == SECTIONS
+    assert not page.locator('#next').is_visible() and not page.locator('#back').is_visible()
+    assert not page.locator('#progress').is_visible()
+    assert page.locator('#select-ring').is_visible()
     assert page.errors == []
 
 

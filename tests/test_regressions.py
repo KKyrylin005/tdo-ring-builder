@@ -41,19 +41,18 @@ def test_failed_load_hides_dead_controls(page, base_url):
     page.goto(base_url + '?id=doesNotExist000')
     page.wait_for_function("/not available/.test(document.getElementById('status').textContent)", timeout=40000)
     assert not page.locator('#next').is_visible() or page.locator('#next').is_disabled()
+    assert not page.locator('#select-ring').is_visible()
     assert 'E_' not in page.locator('#status').inner_text()
 
 
-# B4: "Change" in the review hides the panel that holds the focused button, so keyboard focus is lost
-def test_change_in_review_moves_focus_into_the_step(page, base_url):
+# B4 (review "Change" buttons) is gone with the one-page layout (23.11); Select this ring now sits under the choices
+def test_select_ring_saves_the_choice(page, base_url):
     open_builder(page, base_url)
-    go_to_step(page, 'Review')
-    btn = page.locator('[data-review="centerStone"] button')
-    btn.focus()
-    page.keyboard.press('Enter')
-    page.wait_for_function("!document.querySelector('[data-axis=\"centerStone\"]').hidden")
-    visible = page.evaluate("() => { const a = document.activeElement; return !!a && a !== document.body && !!a.offsetParent && !a.closest('[hidden]'); }")
-    assert visible, 'focus was left on a hidden element'
+    page.wait_for_selector('#ring-3d.ready', timeout=60000)
+    page.locator('#select-ring').click()
+    page.wait_for_selector('#picked-text:not([hidden])')
+    assert 'Saved' in page.locator('#picked-text').inner_text()
+    assert 'state=' in page.url
 
 
 # B5: the 3D area is role="img", which hides its controls (Reset view, Full screen...) from screen readers

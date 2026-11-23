@@ -62,4 +62,12 @@ def tile(page, axis, label):
 
 
 def go_to_step(page, title):
-    page.locator(f'.seg[title="{title}"]').click()
+    # All choices sit on one page (23.11): bring the section into view instead of clicking a step
+    page.locator('#steps .step-panel', has=page.locator('.step-title .name', has_text=title)).first.scroll_into_view_if_needed()
+
+
+SECTIONS = ['Diamond shape', 'Diamond colour', 'Head style', 'Band', 'Metal']
+
+
+def section_names(page):
+    return page.locator('#steps .step-panel:not([hidden]) .step-title .name').evaluate_all('els => els.map(e => e.textContent)')

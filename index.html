@@ -231,6 +231,13 @@
   #steps[data-dir="back"] .step-panel { animation-name: from-left; }
   #steps[data-dir="none"] .step-panel { animation-name: fade; }
   .step-panel[hidden] { display: none; }
+  /* All choices on one page (Alina, 23.11): every section open at once, no step numbers, no Back and Next */
+  .stepper.one-page { gap: 0; }
+  .one-page .progress, .one-page .step-nav, .one-page .step-panel > .step-count:first-child { display: none; }
+  .one-page .step-panel { min-height: 0; padding: 20px 0 24px; border-bottom: 1px solid var(--line); animation: none; }
+  .one-page .step-panel:first-child { padding-top: 0; }
+  .one-page .step-title { margin-top: 0; }
+  .one-page .step-title .name { font-size: 16px; }
   .step-count { font-size: 12px; line-height: 16px; color: var(--text-3); }
   .step-title { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; margin-top: -8px; }
   .step-title .name { font-size: 18px; line-height: 24px; font-weight: 500; }
@@ -383,7 +390,7 @@
         <div class="price"><span class="price-label">Price</span><span class="price-value" id="price">Confirmed by your specialist</span></div>
       </div>
 
-      <div class="stepper">
+      <div class="stepper one-page">
         <nav class="progress" id="progress" aria-label="Steps"></nav>
         <div id="steps"></div>
         <div class="sr-only" id="step-announce" aria-live="polite"></div>
@@ -394,6 +401,8 @@
       </div>
 
       <div class="actions">
+        <button type="button" class="btn primary" id="select-ring">SELECT THIS RING</button>
+        <p class="hint" id="picked-text" hidden></p>
         <a href="https://wa.me/971585363996" class="btn secondary" id="wa-btn" target="_blank" rel="noopener"><svg class="icon" aria-hidden="true"><use href="#i-message"/></svg>CHAT ON WHATSAPP</a>
       </div>
     </div>
@@ -779,7 +788,19 @@
   var backBtn = document.getElementById('back'), nextBtn = document.getElementById('next'), nextLabel = document.getElementById('next-label');
 
   // user: the shopper moved (Next, Back, a step number, Change), as opposed to a rebuild of the panel
+  var ONE_PAGE = true;
   function show(i, user) {
+    if (ONE_PAGE) {
+      // Every option section stays open; the review list is not needed, the choices are all on screen
+      var panels = stepsEl.querySelectorAll('.step-panel');
+      panels.forEach(function (p, n) { p.hidden = n === panels.length - 1; });
+      if (user && stepKeys[i]) {
+        var target = panels[i], stage = document.querySelector('.stage').getBoundingClientRect();
+        var stacked = stage.left < target.getBoundingClientRect().right && stage.right > target.getBoundingClientRect().left;
+        window.scrollBy({ top: target.getBoundingClientRect().top - (stacked ? stage.bottom : 0) - 12, behavior: calm ? 'auto' : 'smooth' });
+      }
+      return;
+    }
     var total = stepKeys.length + 1; // option steps plus the review
     var next = Math.max(0, Math.min(i, total - 1));
     stepsEl.setAttribute('data-dir', next > current ? 'fwd' : next < current ? 'back' : 'none');
@@ -823,6 +844,7 @@
     addEventListener('scrollend', recheck);
     stepRecheck = setTimeout(recheck, 600);
   }
+  document.getElementById('select-ring').addEventListener('click', function () { if (window.selectRing) window.selectRing(); });
   backBtn.addEventListener('click', function () { show(current - 1, true); });
   nextBtn.addEventListener('click', function () {
     if (current === stepKeys.length) selectRing(); else show(current + 1, true);
@@ -963,7 +985,7 @@
     var review = document.createElement('div');
     review.className = 'step-panel';
     review.hidden = true;
-    review.innerHTML = '<div class="step-count">Step ' + total + ' of ' + total + '</div><div class="step-title"><span class="name">Your ring</span></div><div class="review"></div><p class="hint" id="picked-text" hidden></p>';
+    review.innerHTML = '<div class="step-count">Step ' + total + ' of ' + total + '</div><div class="step-title"><span class="name">Your ring</span></div><div class="review"></div>';
     var rv = review.querySelector('.review');
     // One row per choice. Fixed choices (Carat) have no Change; the Metal step gives two rows.
     function reviewRow(key, name, stepIndex) {
@@ -1099,6 +1121,7 @@
     statusEl.textContent = 'The 3D builder is not available right now. Message us on WhatsApp and we will help you design your ring';
     document.querySelector('.step-nav').style.display = 'none';
     progressEl.style.display = 'none';
+    document.getElementById('select-ring').style.display = 'none';
   }
 
   // Open the page at the builder (from the breadcrumb), not at the top of the header.
