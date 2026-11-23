@@ -278,7 +278,10 @@
   .tile { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; min-height: 88px; padding: 12px 4px; border: 1px solid var(--line); background: #fff; color: var(--text-2); font: inherit; font-size: 12px; line-height: 16px; text-align: center; cursor: pointer; transition: border-color var(--t-hover) var(--ease), background-color var(--t-hover) var(--ease), color var(--t-hover) var(--ease), opacity var(--t-hover) var(--ease), transform var(--t-fast) var(--ease); }
   .tile:active { transform: scale(.98); }
   .tile[aria-pressed="true"] { border-color: var(--green); background: var(--selected); color: var(--green); }
-  .tile:disabled { opacity: .4; cursor: not-allowed; }
+  /* No 3D model yet (or not makeable with the other choices): grey, flat and not clickable */
+  .tile:disabled { background: var(--surface); border-color: var(--line); color: #A3ADA9; opacity: .7; cursor: not-allowed; }
+  .tile:disabled:active { transform: none; }
+  .tile:disabled svg, .tile:disabled .swatch { filter: grayscale(1); opacity: .6; }
   .tile.adjusts { border-style: dashed; }
   .tile svg { width: 36px; height: 36px; flex: none; fill: none; stroke: currentColor; stroke-width: 1.2; stroke-linecap: round; stroke-linejoin: round; transition: transform var(--t-fill) var(--ease); }
   .tile svg .dot { fill: currentColor; stroke: none; }
