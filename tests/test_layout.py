@@ -8,7 +8,7 @@ def test_no_horizontal_overflow_on_phones(browser, base_url, w):
     ctx = browser.new_context(viewport={'width': w, 'height': 760}, is_mobile=True, has_touch=True)
     pg = ctx.new_page()
     open_builder(pg, base_url)
-    for t in ['Diamond shape', 'Diamond colour', 'Band', 'Metal', 'Review']:
+    for t in ['Diamond shape', 'Diamond colour', 'Head style', 'Band', 'Metal', 'Review']:
         go_to_step(pg, t)
         if t == 'Band':
             tile(pg, 'shank', 'Pavé').click(); pg.wait_for_timeout(800)
