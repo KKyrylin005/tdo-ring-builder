@@ -489,6 +489,10 @@
     Blue:   { color: '#b5cbdd', envMapIntensity: 1.5,  rIndexDelta: .004, absorptionFactor: 1,   refractiveIndex: 2.4, gammaFactor: 1.09, boostFactors: [2, 2, 2],   reflectivity: .46 },
     Green:  { color: '#c9e3d3', envMapIntensity: 1.5,  rIndexDelta: .004, absorptionFactor: 1,   refractiveIndex: 2.4, gammaFactor: 1.09, boostFactors: [2, 2, 2],   reflectivity: .46 }
   };
+  // A separate white centre profile lifts the dark facets on these four cuts.
+  var WHITE_SQUARE_LOOK = Object.assign({}, PAVE_LOOKS.White, {
+    refractiveIndex: 2.2, gammaFactor: 0.9, boostFactors: [2, 2, 2]
+  });
   // Own keys only: a plain lookup would also accept "constructor", "toString" and other Object keys
   var paveColor = Object.prototype.hasOwnProperty.call(PAVE_LOOKS, params.get('pave')) ? params.get('pave') : 'White';
   function isPaveAxis(a) { return a.key !== 'shank' && /pav/i.test(a.key + ' ' + (a.label || '')); }
@@ -516,7 +520,9 @@
       if (!o.isMesh || !o.material) return;
       var isCentre = o.material.name === 'Gem 01';
       if (isCentre ? !whiteCentre : PAVE_LAYERS.indexOf(layer) < 0 && PAVE_LAYERS.indexOf(o.material.name) < 0) return;
-      var look = PAVE_LOOKS[isCentre ? 'White' : paveColor];
+      var look = isCentre
+        ? (SQUARE_CUTS.test(centreShape()) ? WHITE_SQUARE_LOOK : PAVE_LOOKS.White)
+        : PAVE_LOOKS[paveColor];
       seen = true;
       var m = o.material, u = m.uniforms || {};
       // iJewel rewrites this same material when a model reloads, so compare values, not a flag
