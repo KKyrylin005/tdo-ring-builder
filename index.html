@@ -1287,10 +1287,49 @@
     var all = box.querySelectorAll('.ijewel-view');
     return all.length > before ? all[all.length - 1] : null;
   }
+  // Keep the camera outside the assembled ring for wheel, touch and viewer controls.
+  function mountRingViewer(box, ringSession) {
+    return api.mountViewer(box, ringSession, VIEW_OPTS).then(function (handle) {
+      var scene = handle.viewer && handle.viewer.scene;
+      var camera = scene && scene.activeCamera;
+      var controls = camera && camera.controls;
+      if (!controls) return handle;
+
+      var sdkMinimum = controls.minDistance;
+      var center = controls.target.clone();
+      var size = center.clone();
+      var radius = 0;
+      function updateLimit() {
+        if (radius > 0) {
+          // Three bounding radii leave room for a close-up from any angle, including after a pan.
+          controls.minDistance = Math.max(sdkMinimum, 3 * radius + center.distanceTo(controls.target));
+        }
+      }
+      function measureRing() {
+        var bounds = scene.getModelBounds();
+        if (bounds.isEmpty()) return;
+        bounds.getCenter(center);
+        radius = bounds.getSize(size).length() / 2;
+        updateLimit();
+      }
+      var measureFrame = null;
+      function scheduleMeasurement() {
+        if (measureFrame !== null) return;
+        measureFrame = requestAnimationFrame(function () {
+          measureFrame = null;
+          measureRing();
+        });
+      }
+      scene.addEventListener('sceneUpdate', scheduleMeasurement);
+      controls.addEventListener('change', updateLimit);
+      viewerReady(handle, 20000).then(scheduleMeasurement);
+      return handle;
+    });
+  }
   // The first ring: shown only once it is fully drawn, not the unlit first frames
   function mount(s) {
     var box = document.getElementById('ring-3d'), before = box.querySelectorAll('.ijewel-view').length;
-    var p = api.mountViewer(box, s, VIEW_OPTS), layer = newLayer(box, before);
+    var p = mountRingViewer(box, s), layer = newLayer(box, before);
     return p.then(function (h) {
       layer = layer || newLayer(box, before);
       var first = views[caratIdx] = { session: s, handle: h, layer: layer, ready: Promise.resolve() };
@@ -1318,7 +1357,7 @@
       return applyLabels(s, labelsOf(session));
     }).then(function () {
       var before = box.querySelectorAll('.ijewel-view').length;
-      var p = api.mountViewer(box, v.session, VIEW_OPTS);
+      var p = mountRingViewer(box, v.session);
       v.layer = newLayer(box, before);
       if (v.layer) v.layer.classList.add('incoming');
       return p;
