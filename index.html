@@ -483,7 +483,7 @@
   var PAVE_LAYERS = ['Gem 02', 'Gem 05'];
   var PAVE_KEY = 'sideStones';
   var PAVE_LOOKS = {
-    White:  { color: '#ffffff', envMapIntensity: 1.3,  rIndexDelta: .01,  absorptionFactor: 1,   refractiveIndex: 2.6, gammaFactor: 1,    boostFactors: [1, 1, 1],   reflectivity: .5 },
+    White:  { color: '#ffffff', envMapIntensity: 2.32, rIndexDelta: 0, absorptionFactor: 0, refractiveIndex: 2.46, gammaFactor: 1.2, boostFactors: [1, 1, 1], reflectivity: .02 },
     Yellow: { color: '#fefbf2', envMapIntensity: 1.03, rIndexDelta: .005, absorptionFactor: 1.3, refractiveIndex: 2.6, gammaFactor: 1,    boostFactors: [2.3, 2, 1], reflectivity: .5 },
     Pink:   { color: '#f7e0e0', envMapIntensity: 1.5,  rIndexDelta: .004, absorptionFactor: 1,   refractiveIndex: 2.4, gammaFactor: 1.09, boostFactors: [2, 2, 2],   reflectivity: .46 },
     Blue:   { color: '#b5cbdd', envMapIntensity: 1.5,  rIndexDelta: .004, absorptionFactor: 1,   refractiveIndex: 2.4, gammaFactor: 1.09, boostFactors: [2, 2, 2],   reflectivity: .46 },
@@ -506,10 +506,17 @@
   function applyPaveTo(v) {
     var changed = false, seen = false;
     if (!v || !v.scene || !v.scene.modelRoot) return false;
-    var look = PAVE_LOOKS[paveColor];
+    var centre = session && session.selection().centerStone;
+    var colourAxis = centre && session.axes().find(function (axis) { return axis.key === 'centerStone'; });
+    var whiteCentre = colourAxis && colourAxis.options.some(function (option) {
+      return option.key === centre && option.label === 'White';
+    });
     v.scene.modelRoot.traverse(function (o) {
       var layer = o.userData && o.userData.rhinoLayer && o.userData.rhinoLayer.fullPath;
-      if (!o.isMesh || !o.material || (PAVE_LAYERS.indexOf(layer) < 0 && PAVE_LAYERS.indexOf(o.material.name) < 0)) return;
+      if (!o.isMesh || !o.material) return;
+      var isCentre = o.material.name === 'Gem 01';
+      if (isCentre ? !whiteCentre : PAVE_LAYERS.indexOf(layer) < 0 && PAVE_LAYERS.indexOf(o.material.name) < 0) return;
+      var look = PAVE_LOOKS[isCentre ? 'White' : paveColor];
       seen = true;
       var m = o.material, u = m.uniforms || {};
       // iJewel rewrites this same material when a model reloads, so compare values, not a flag
@@ -555,6 +562,7 @@
       v.scene.modelRoot.traverse(function (o) {
         if (!o.isMesh || !o.material || o.material.name !== 'Gem 01') return;
         var m = o.material, u = m.uniforms;
+        if (m.color && m.color.getHexString() === 'ffffff') { delete m.userData.sqApplied; delete m.userData.sqBase; delete m.userData.sqOn; return; }
         if (!u || !u.refractiveIndex || !u.boostFactors || !u.gammaFactor) return;
         var b = u.boostFactors.value, ud = m.userData || (m.userData = {});
         var cur = [u.refractiveIndex.value, b.x, b.y, b.z, u.gammaFactor.value].join();
@@ -1180,7 +1188,7 @@
   // ---- Sessions and the 3D view ----
   var api = window.IjewelConfigurator;
   var viewerHandle = null, busy = false, switchToken = 0, offEvents = [];
-  var VIEW_OPTS = { background: '#F3F6F4', camera: 'fit', tryOn: false, onError: function (e) { console.warn('viewer', e); } };
+  var VIEW_OPTS = { background: '#fafafa', camera: 'fit', tryOn: false, onError: function (e) { console.warn('viewer', e); } };
   function useSession(s) {
     offEvents.forEach(function (off) { try { if (typeof off === 'function') off(); } catch (e) {} });
     session = s;
@@ -1288,6 +1296,27 @@
     return all.length > before ? all[all.length - 1] : null;
   }
   // Keep the camera outside the assembled ring for wheel, touch and viewer controls.
+  async function applyStudioLight(viewer) {
+    var base = 'https://playground.ijewel3d.com/assetspro/hdrmaps/';
+    var importer = viewer.assetManager.importer;
+    var maps = await Promise.all([
+      importer.importSinglePath(base + 'metal/env-metal-010.exr'),
+      importer.importSinglePath(base + 'gem/env-gem-010.exr')
+    ]);
+    var diamond = viewer.getPluginByType('Diamond');
+    if (!diamond || !maps.every(function (map) { return map && map.isTexture; })) return;
+    maps[0].rotation = 2.8623399732707004;
+    viewer.scene.environment = maps[0];
+    diamond.envMap = maps[1];
+    var bloom = viewer.getPluginByType('Bloom');
+    if (bloom && bloom.pass) {
+      Object.assign(bloom.pass, { enabled: true, threshold: 2, intensity: 0.2, radius: 0.6 });
+      bloom.enabled = true;
+    }
+    var tone = viewer.getPluginByType('Tonemap');
+    if (tone && tone.extension) tone.extension.clipBackground = false;
+    viewer.setDirty();
+  }
   function mountRingViewer(box, ringSession) {
     return api.mountViewer(box, ringSession, VIEW_OPTS).then(function (handle) {
       var scene = handle.viewer && handle.viewer.scene;
@@ -1322,7 +1351,10 @@
       }
       scene.addEventListener('sceneUpdate', scheduleMeasurement);
       controls.addEventListener('change', updateLimit);
-      viewerReady(handle, 20000).then(scheduleMeasurement);
+      viewerReady(handle, 20000).then(function () {
+        scheduleMeasurement();
+        applyStudioLight(handle.viewer).catch(function (error) { console.warn('Studio lighting unavailable', error); });
+      });
       return handle;
     });
   }
