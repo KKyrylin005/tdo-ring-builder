@@ -3,6 +3,23 @@ from conftest import open_builder, tile, go_to_step, SECTIONS
 import pytest
 
 
+def test_mobile_menu_exposes_all_navigation_links(browser, base_url):
+    with browser.new_context(viewport={'width': 320, 'height': 568}, is_mobile=True, has_touch=True) as ctx:
+        pg = ctx.new_page()
+        open_builder(pg, base_url, wait_steps=False)
+        menu = pg.get_by_role('button', name='Menu', exact=True)
+        design = pg.locator('#main-menu .studio')
+        assert pg.evaluate('window.scrollY') == 0
+        assert not design.is_visible()
+        menu.tap()
+        assert menu.get_attribute('aria-expanded') == 'true'
+        assert design.is_visible()
+        design.focus()
+        pg.keyboard.press('Escape')
+        assert menu.get_attribute('aria-expanded') == 'false'
+        assert menu.evaluate('el => document.activeElement === el')
+
+
 @pytest.mark.parametrize('w', [320, 375, 390])
 def test_no_horizontal_overflow_on_phones(browser, base_url, w):
     ctx = browser.new_context(viewport={'width': w, 'height': 760}, is_mobile=True, has_touch=True)

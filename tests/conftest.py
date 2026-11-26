@@ -66,7 +66,7 @@ def go_to_step(page, title):
     page.locator('#steps .step-panel', has=page.locator('.step-title .name', has_text=title)).first.scroll_into_view_if_needed()
 
 
-SECTIONS = ['Diamond shape', 'Diamond colour', 'Band', 'Metal']
+SECTIONS = ['Diamond shape', 'Diamond colour', 'Head style', 'Band', 'Metal']
 
 
 def section_names(page):
