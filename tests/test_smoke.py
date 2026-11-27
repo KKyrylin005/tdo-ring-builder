@@ -52,3 +52,19 @@ def test_bands_have_icons_and_side_stones(page, base_url):
     page.locator('#steps [data-axis="shank"] > .opts .tile', has_text='Ribbed side stone').first.click()
     page.wait_for_function("document.querySelector('.side-stones').classList.contains('open')")
     assert page.errors == []
+
+
+def test_six_prong_shows_only_shapes_it_has(page, base_url):
+    """26.11: 6 Prong exists for Round only. While it is picked, the other shapes fold away (not dashed tiles
+    that would switch the head back), and they come back with 4 Prong."""
+    open_builder(page, base_url)
+    page.wait_for_selector('#ring-3d.ready', timeout=90000)
+    tile(page, 'head', '6 Prong').click()
+    page.wait_for_function('document.querySelectorAll(\'#steps [data-axis="shape"] .tile.gone\').length > 0', timeout=20000)
+    page.wait_for_timeout(800)
+    visible = page.locator('#steps [data-axis="shape"] > .opts .tile:not(.gone)').evaluate_all('els => els.map(e => e.innerText.trim())')
+    assert visible == ['Round'], visible
+    tile(page, 'head', '4 Prong').click()
+    page.wait_for_function('document.querySelectorAll(\'#steps [data-axis="shape"] .tile.gone\').length === 0', timeout=20000)
+    assert page.locator('#steps [data-axis="shape"] > .opts .tile:not(.gone)').count() == len(SHAPES)
+    assert page.errors == []

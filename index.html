@@ -297,6 +297,7 @@
   .tile:disabled:active { transform: none; }
   .tile:disabled svg, .tile:disabled .swatch { filter: grayscale(1); opacity: .6; }
   .tile.adjusts { border-style: dashed; }
+  .tile.gone { display: none; }
   .tile svg { width: 36px; height: 36px; flex: none; fill: none; stroke: currentColor; stroke-width: 1.2; stroke-linecap: round; stroke-linejoin: round; transition: transform var(--t-fill) var(--ease); }
   .tile svg .dot { fill: currentColor; stroke: none; }
   .tile .swatch { width: 28px; height: 28px; border-radius: 50%; border: 1px solid rgba(24,27,26,.16); box-shadow: inset 0 -6px 10px rgba(24,27,26,.08); outline: 1px solid transparent; outline-offset: 0; transition: outline-color var(--t-hover) var(--ease), outline-offset var(--t-fill) var(--ease), transform var(--t-fill) var(--ease); }
@@ -828,6 +829,11 @@
           : opt.state === 'no-file' ? 'Not available yet'
           : opt.state === 'blocked' ? 'Not available with your other choices' : '';
       });
+      // Shapes the chosen head style has no model for yet (6 Prong is Round only) are not offered: they fold away
+      // instead of showing as a choice that would switch the head back to 4 Prong.
+      if (x.axis.key === 'shape') foldTiles(step.querySelector('.opts'), x.opts.filter(function (o) {
+        return o.state !== 'selected' && o.state !== 'available';
+      }).map(function (o) { return o.key; }));
     });
     renderSide();
   }
@@ -842,6 +848,33 @@
     sideRow.querySelectorAll('.tile').forEach(function (b) { b.setAttribute('aria-pressed', b.getAttribute('data-opt') === paveColor ? 'true' : 'false'); });
     var rr = stepsEl.querySelector('[data-review="' + PAVE_KEY + '"]');
     if (rr) { rr.hidden = !on; rr.querySelector('.v').textContent = paveColor; }
+  }
+
+  // Hide or bring back tiles with a short fade, and let the rest glide to their new places (FLIP)
+  function foldTiles(row, goneKeys) {
+    if (!row) return;
+    var tiles = [].slice.call(row.querySelectorAll('.tile'));
+    var change = tiles.filter(function (t) { return (goneKeys.indexOf(t.getAttribute('data-opt')) > -1) !== t.classList.contains('gone') && !t.__folding; });
+    if (!change.length) return;
+    var leaving = change.filter(function (t) { return !t.classList.contains('gone'); });
+    var coming = change.filter(function (t) { return t.classList.contains('gone'); });
+    leaving.forEach(function (t) { t.tabIndex = -1; t.setAttribute('aria-hidden', 'true'); });
+    function move() {
+      var stay = tiles.filter(function (t) { return !t.classList.contains('gone') && leaving.indexOf(t) < 0; });
+      var before = stay.map(function (t) { return t.getBoundingClientRect(); });
+      leaving.forEach(function (t) { t.classList.add('gone'); t.__folding = false; });
+      coming.forEach(function (t) { t.classList.remove('gone'); t.removeAttribute('aria-hidden'); t.removeAttribute('tabindex'); });
+      if (calm || !row.animate) return;
+      stay.forEach(function (t, i) {
+        var a = before[i], b = t.getBoundingClientRect(), dx = a.left - b.left, dy = a.top - b.top;
+        if (dx || dy) t.animate([{ transform: 'translate(' + dx + 'px,' + dy + 'px)' }, { transform: 'none' }], { duration: 320, easing: 'cubic-bezier(.22,1,.36,1)' });
+      });
+      coming.forEach(function (t) { t.animate([{ opacity: 0, transform: 'scale(.92)' }, { opacity: 1, transform: 'none' }], { duration: 260, delay: 80, easing: 'cubic-bezier(.22,1,.36,1)', fill: 'backwards' }); });
+    }
+    if (calm || !leaving.length || !leaving[0].animate) return move();
+    leaving.forEach(function (t) { t.__folding = true; });
+    var anims = leaving.map(function (t) { return t.animate([{ opacity: 1, transform: 'none' }, { opacity: 0, transform: 'scale(.92)' }], { duration: 200, easing: 'cubic-bezier(.4,0,1,1)', fill: 'forwards' }); });
+    anims[0].onfinish = function () { move(); anims.forEach(function (a) { a.cancel(); }); };
   }
 
   // A changed value fades in instead of jumping
