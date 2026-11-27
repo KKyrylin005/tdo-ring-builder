@@ -1033,6 +1033,7 @@
         row.appendChild(tileFor(axis, opt, function () {
           if (busy) return;
           if (axis.virtual === 'carat') { switchCarat(opt.key); return; }
+          if (axis.key === 'head' && headNeedsShape(opt.key)) { jumpToHead(opt.key); return; }
           var same = axis.key === 'headMetal' && bandMetal && !mixMetals && bandMetal.opts.some(function (o) { return o.key === opt.key; });
           var p = same ? session.selectMany({ headMetal: opt.key, shankMetal: opt.key }) : session.select(axis.key, opt.key);
           p.catch(function (e) { console.warn(e); });
@@ -1139,6 +1140,24 @@
     show(Math.min(current, total - 1));
   }
 
+  // A head style made only for some shapes (6 Prong: Round): picked on another shape, the ring moves to the
+  // first shape that has it, instead of the click doing nothing.
+  function headNeedsShape(key) {
+    var o = (session.options('head') || []).filter(function (x) { return x.key === key; })[0];
+    return !!o && o.state === 'adjusts';
+  }
+  function jumpToHead(key) {
+    var sel = session.selection();
+    var shapes = (session.options('shape') || []).map(function (o) { return o.key; }).filter(function (k) { return k !== sel.shape; });
+    (function next(i) {
+      if (i >= shapes.length) return;
+      session.selectMany({ shape: shapes[i], head: key }).then(function () {
+        var now = session.selection(), part = session.resolve().parts.head;
+        if (now.head !== key || now.shape !== shapes[i] || !part || !part.file) next(i + 1);
+      }).catch(function () { next(i + 1); });
+    })(0);
+  }
+
   // Section bar over the choices: a short name and the current pick per section. Tapping one glides the page to it;
   // while the shopper scrolls, the green line follows the section in view.
   var SEC_SHORT = { shape: 'Shape', centerStone: 'Colour', head: 'Head', shank: 'Band', headMetal: 'Metal', shankMetal: 'Metal', carat: 'Carat' };
@@ -1215,20 +1234,37 @@
 
 
   // Restyle the iJewel buttons over the ring in TDO style. They live in the viewer's open shadow root.
+  // The iJewel buttons over the ring, redrawn in TDO style: one slim white rail with a hairline, line icons
+  // from one set (lucide, 1.5 stroke) in the quiet text colour, green on hover. A rail on the right on a computer,
+  // a row in the bottom right corner on a phone so it does not cover the ring.
+  var VIEWER_ICONS = {
+    'Display settings': '<path d="M20 7h-9M14 17H5"/><circle cx="17" cy="17" r="3"/><circle cx="7" cy="7" r="3"/>',
+    'Reset view': '<path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/>',
+    'Turn the ring': '<path d="M16.47 7.5C15.64 4.24 13.95 2 12 2 9.24 2 7 6.48 7 12s2.24 10 5 10c.34 0 .68-.07 1-.2"/><path d="m15.19 13.71 3.82 1.86-1.86 3.81"/><path d="M19 15.57c-1.8.89-4.27 1.43-7 1.43-5.52 0-10-2.24-10-5s4.48-5 10-5c4.84 0 8.87 1.72 9.8 4"/>',
+    'Fit to view': '<path d="M3 7V5a2 2 0 0 1 2-2h2M17 3h2a2 2 0 0 1 2 2v2M21 17v2a2 2 0 0 1-2 2h-2M7 21H5a2 2 0 0 1-2-2v-2"/><circle cx="12" cy="12" r="3"/>',
+    'Full screen': '<path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/>'
+  };
+  function iconMask(paths) {
+    var svg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">' + paths + '</svg>';
+    return 'url("data:image/svg+xml,' + encodeURIComponent(svg) + '")';
+  }
   var VIEWER_CSS = [
-    '.viewer-options{background:#fff!important;border:1px solid #DDE3E0!important;border-radius:0!important;padding:4px!important;row-gap:4px!important;box-shadow:none!important;backdrop-filter:none!important}',
-    '.viewer-options button{width:40px!important;height:40px!important;min-width:40px!important;border-radius:0!important;color:#3A4A44!important;background:transparent!important;transition:background-color 320ms cubic-bezier(.22,1,.36,1),color 320ms cubic-bezier(.22,1,.36,1),transform 200ms cubic-bezier(.22,1,.36,1)!important}',
+    '.viewer-options{background:rgba(255,255,255,.92)!important;border:1px solid #DDE3E0!important;border-radius:0!important;padding:0!important;gap:0!important;row-gap:0!important;box-shadow:none!important;backdrop-filter:none!important;scale:1!important;transform:translateY(-50%)!important;top:50%!important;right:16px!important;overflow:visible!important;max-height:none!important;margin:0!important}',
+    '.viewer-options>div{display:flex!important}',
+    '.viewer-options>*+*{border-top:1px solid #EDF0EE!important}',
+    '.viewer-options button{width:40px!important;height:40px!important;min-width:40px!important;padding:0!important;border-radius:0!important;color:#5F6D68!important;background:transparent!important;transition:background-color 200ms cubic-bezier(.22,1,.36,1),color 200ms cubic-bezier(.22,1,.36,1),transform 160ms cubic-bezier(.22,1,.36,1)!important}',
+    '.viewer-options button>div{display:none!important}',
+    '.viewer-options button::before{content:"";width:18px;height:18px;background:currentColor;-webkit-mask:var(--ic) center/contain no-repeat;mask:var(--ic) center/contain no-repeat}',
     '.viewer-options button:hover,.viewer-options [aria-expanded=true] button{background:#EAF1EE!important;color:#09362F!important}',
-    '.viewer-options button:active{transform:scale(.96)!important}',
+    '.viewer-options button:active{transform:scale(.94)!important}',
     '.viewer-options button[data-focus-visible=true],.viewer-options button:focus-visible{outline:2px solid #09362F!important;outline-offset:-2px!important}',
-    '.viewer-options button svg{width:18px!important;height:18px!important}',
     ':fullscreen,:fullscreen #webgi-wrapper,:fullscreen #webgi-canvas-container{background:#fff!important}',
     ':fullscreen::backdrop{background:#fff!important}',
-    '@media (max-width:960px){.viewer-options{max-height:none!important;padding:2px!important;gap:0!important;transform:none!important;top:4px!important;right:4px!important}.viewer-options button{width:44px!important;height:44px!important;min-width:44px!important}.viewer-options button svg{width:17px!important;height:17px!important}}',
-    '@media (max-width:960px) and (max-height:550px){.viewer-options{flex-direction:row!important}}',
-    '.viewer-options button svg *:not([fill=none]){fill:currentColor!important}',
-    '.viewer-options button svg [stroke]:not([stroke=none]){stroke:currentColor!important}'
-  ].join('');
+    // Phone: only Reset, Turn and Full screen, a slim rail at the right edge, beside the ring, not over it
+    '@media (max-width:960px){.viewer-options{right:6px!important;background:rgba(255,255,255,.85)!important}.viewer-options>:nth-child(1),.viewer-options>:nth-child(4){display:none!important}.viewer-options>:nth-child(2){border-top:0!important}.viewer-options button{width:32px!important;height:32px!important;min-width:32px!important}.viewer-options button::before{width:16px;height:16px}}'
+  ].concat(Object.keys(VIEWER_ICONS).map(function (k) {
+    return '.viewer-options button[aria-label="' + k + '"]{--ic:' + iconMask(VIEWER_ICONS[k]) + '}';
+  })).join('');
   var VIEWER_LABELS = ['Display settings', 'Reset view', 'Turn the ring', 'Fit to view', 'Full screen'];
   function styleViewerButtons(container) {
     var host = null;
@@ -1483,6 +1519,17 @@
     if (tone && tone.extension) tone.extension.clipBackground = false;
     viewer.setDirty();
   }
+  // On a phone the fitted ring looked small in the short view: start about a fifth closer (never inside the zoom limit)
+  var PHONE = matchMedia('(max-width: 960px)');
+  function closerOnPhone(camera, controls) {
+    if (!PHONE.matches || !camera || !camera.target) return;
+    try {
+      var d = camera.position.distanceTo(camera.target), want = Math.max(d * 0.82, (controls.minDistance || 0) + 0.05);
+      if (want >= d) return;
+      camera.position.sub(camera.target).multiplyScalar(want / d).add(camera.target);
+      camera.positionTargetUpdated(true);
+    } catch (e) { console.warn('phone camera', e); }
+  }
   function mountRingViewer(box, ringSession) {
     return api.mountViewer(box, ringSession, VIEW_OPTS).then(function (handle) {
       var scene = handle.viewer && handle.viewer.scene;
@@ -1539,6 +1586,7 @@
     }).then(function () {
       if (views[caratIdx]) views[caratIdx].setup = true;
       if (caratMode) box.setAttribute('data-shown', CARATS[caratIdx][0]);
+      try { var cam = viewerHandle.viewer.scene.activeCamera; closerOnPhone(cam, cam.getControls()); } catch (e) {}
       box.classList.add('ready');
       // Low-memory phones build the other carats only once the shopper opens the Carat step
       if (caratMode && !(navigator.deviceMemory && navigator.deviceMemory < 4)) idle(prewarmAll);

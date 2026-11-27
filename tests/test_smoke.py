@@ -88,3 +88,14 @@ def test_section_bar_jumps_and_follows_scroll(page, base_url):
     page.wait_for_timeout(1200)
     assert page.locator('#secnav [aria-current="true"]').get_attribute('data-sec') == 'shape'
     assert page.errors == []
+
+
+def test_six_prong_from_another_shape_moves_to_round(page, base_url):
+    """27.11: picking 6 Prong while another shape is chosen moves the ring to the shape that has it (Round)."""
+    open_builder(page, base_url)
+    page.wait_for_selector('#ring-3d.ready', timeout=90000)
+    tile(page, 'shape', 'Oval').click()
+    page.wait_for_function("session.selection().shape === 'oval'", timeout=20000)
+    tile(page, 'head', '6 Prong').click()
+    page.wait_for_function("session.selection().head.indexOf('6') === 0 && session.selection().shape === 'round'", timeout=20000)
+    assert page.errors == []
