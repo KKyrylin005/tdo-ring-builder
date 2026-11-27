@@ -523,10 +523,6 @@
     Blue:   { color: '#b5cbdd', envMapIntensity: 1.5,  rIndexDelta: .004, absorptionFactor: 1,   refractiveIndex: 2.4, gammaFactor: 1.09, boostFactors: [2, 2, 2],   reflectivity: .46 },
     Green:  { color: '#c9e3d3', envMapIntensity: 1.5,  rIndexDelta: .004, absorptionFactor: 1,   refractiveIndex: 2.4, gammaFactor: 1.09, boostFactors: [2, 2, 2],   reflectivity: .46 }
   };
-  // A separate white centre profile lifts the dark facets on these four cuts.
-  var WHITE_SQUARE_LOOK = Object.assign({}, PAVE_LOOKS.White, {
-    refractiveIndex: 2.2, gammaFactor: 0.9, boostFactors: [2, 2, 2]
-  });
   // Own keys only: a plain lookup would also accept "constructor", "toString" and other Object keys
   var paveColor = Object.prototype.hasOwnProperty.call(PAVE_LOOKS, params.get('pave')) ? params.get('pave') : 'White';
   function isPaveAxis(a) { return a.key !== 'shank' && /pav/i.test(a.key + ' ' + (a.label || '')); }
@@ -554,9 +550,7 @@
       if (!o.isMesh || !o.material) return;
       var isCentre = o.material.name === 'Gem 01';
       if (isCentre ? !whiteCentre : PAVE_LAYERS.indexOf(layer) < 0 && PAVE_LAYERS.indexOf(o.material.name) < 0) return;
-      var look = isCentre
-        ? (SQUARE_CUTS.test(centreShape()) ? WHITE_SQUARE_LOOK : PAVE_LOOKS.White)
-        : PAVE_LOOKS[paveColor];
+      var look = isCentre ? PAVE_LOOKS.White : PAVE_LOOKS[paveColor];
       seen = true;
       var m = o.material, u = m.uniforms || {};
       // iJewel rewrites this same material when a model reloads, so compare values, not a flag
@@ -583,49 +577,37 @@
   function watchPave() {
     clearInterval(paveTimer);
     var tries = 0;
-    paveTimer = setInterval(function () { applyPave(); applySquare(); if (++tries > 30) clearInterval(paveTimer); }, 100);
+    paveTimer = setInterval(function () { fixGemNormals(); applyPave(); if (++tries > 30) clearInterval(paveTimer); }, 100);
   }
   // Square step cuts (Princess, Asscher, Emerald, Radiant) render with a black centre with iJewel's diamond
   // settings: their steep pavilions trap the light (Alina's feedback, 23.11). For these shapes the page eases the
   // centre stone's refraction and lifts its reflections, on top of whatever colour iJewel set.
-  var SQUARE_CUTS = /princess|asscher|emerald|radiant/i;
-  var SQUARE_LOOK = { refractiveIndex: 2.2, boost: 2.0, gamma: 0.75 };
-  function centreShape() {
-    var t = stepsEl && stepsEl.querySelector('[data-axis="shape"] > .opts .tile[aria-pressed="true"]');
-    return t ? t.textContent.trim() : '';
-  }
-  function applySquare() {
-    var on = SQUARE_CUTS.test(centreShape());
+  // Each stone's own light. iJewel's diamond shader traces light inside a stone through a map of the stone's facets,
+  // captured once per cache key, and every centre stone carries the same key, its layer name "Gem 01". So every
+  // stone after the first was drawn with the first stone's facets: an Emerald showed a round brilliant pattern, and
+  // Princess, Asscher and Radiant looked dark or milky (27.11). Each stone geometry now gets its own key and map.
+  function fixGemNormals() {
     viewers3d().forEach(function (v) {
-      if (!v || !v.scene || !v.scene.modelRoot) return;
-      var changed = false;
-      v.scene.modelRoot.traverse(function (o) {
-        if (!o.isMesh || !o.material || o.material.name !== 'Gem 01') return;
-        var m = o.material, u = m.uniforms;
-        if (m.color && m.color.getHexString() === 'ffffff') { delete m.userData.sqApplied; delete m.userData.sqBase; delete m.userData.sqOn; return; }
-        if (!u || !u.refractiveIndex || !u.boostFactors || !u.gammaFactor) return;
-        var b = u.boostFactors.value, ud = m.userData || (m.userData = {});
-        var cur = [u.refractiveIndex.value, b.x, b.y, b.z, u.gammaFactor.value].join();
-        // iJewel rewrites the material when the colour or model changes: what it wrote becomes the new base
-        if (ud.sqApplied !== cur) { ud.sqBase = { ri: u.refractiveIndex.value, b: [b.x, b.y, b.z], g: u.gammaFactor.value }; ud.sqOn = false; }
-        if (on === !!ud.sqOn) return;
-        var base = ud.sqBase;
-        if (on) {
-          u.refractiveIndex.value = SQUARE_LOOK.refractiveIndex;
-          b.set(base.b[0] * SQUARE_LOOK.boost, base.b[1] * SQUARE_LOOK.boost, base.b[2] * SQUARE_LOOK.boost);
-          u.gammaFactor.value = base.g * SQUARE_LOOK.gamma;
-        } else {
-          u.refractiveIndex.value = base.ri; b.set(base.b[0], base.b[1], base.b[2]); u.gammaFactor.value = base.g;
-        }
-        if ('refractiveIndex' in m) m.refractiveIndex = u.refractiveIndex.value;
-        ud.sqOn = on;
-        ud.sqApplied = [u.refractiveIndex.value, b.x, b.y, b.z, u.gammaFactor.value].join();
-        m.needsUpdate = true; changed = true;
-      });
-      if (changed && v.setDirty) v.setDirty();
+      try {
+        var d = v && v.getPluginByType && v.getPluginByType('Diamond'), cap = d && d._normalCapture;
+        if (!cap || !cap._normalsCache || !v.scene || !v.scene.modelRoot) return;
+        var changed = false;
+        v.scene.modelRoot.traverse(function (o) {
+          if (!o.isMesh || !o.geometry || !o.material || !o.material.uniforms || !o.material.uniforms.tCubeMapNormals) return;
+          var geo = o.geometry, key = 'tdo:' + geo.uuid;
+          if (geo.userData.__tdoNormals === key) return;
+          delete cap._normalsCache[geo.uuid];
+          delete cap._normalsCache[key];
+          delete geo.userData._normalsCaptureMap;
+          d.prepareDiamondMesh(o, { cacheKey: key });
+          geo.userData.__tdoNormals = key;
+          changed = true;
+        });
+        if (changed) v.setDirty();
+      } catch (e) { console.warn('stone light', e); }
     });
   }
-  setInterval(function () { if (session) { applyPave(); applySquare(); } }, 600);
+  setInterval(function () { if (session) { fixGemNormals(); applyPave(); } }, 600);
   function setPave(c) { paveColor = c; render(); updateWhatsApp(); watchPave(); }
   // Bands with side stones, by label: every pavé band, the twisted band (one strand is set with stones),
   // plus the marquise, bezel, accent and side-stone bands

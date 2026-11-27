@@ -63,3 +63,21 @@ def test_viewer_controls_are_exposed_to_assistive_tech(page, base_url):
         return h && h.shadowRoot.querySelector('.viewer-options button[aria-label="Reset view"]'); }""", timeout=30000)
     snap = page.locator('#ring-3d').aria_snapshot()
     assert 'Reset view' in snap, snap
+
+
+def test_every_centre_stone_has_its_own_light_map(page, base_url):
+    """27.11: iJewel cached one facet map for every stone named "Gem 01", so an Emerald was lit like the first
+    stone (Round). Each stone geometry must carry its own map."""
+    open_builder(page, base_url)
+    page.wait_for_selector('#ring-3d.ready', timeout=90000)
+    tile(page, 'shape', 'Emerald').click()
+    page.wait_for_function("session.selection().shape === 'emerald'", timeout=20000)
+    page.wait_for_timeout(6000)
+    ok = page.evaluate("""(() => {
+      var v = viewers3d().find(x => x && x.scene), g;
+      v.scene.modelRoot.traverse(o => { if (o.isMesh && o.material && o.material.name === 'Gem 01') g = o; });
+      var cache = v.getPluginByType('Diamond')._normalCapture._normalsCache;
+      return !!g && g.geometry.userData.__tdoNormals === 'tdo:' + g.geometry.uuid && cache['tdo:' + g.geometry.uuid] !== cache['Gem 01'];
+    })()""")
+    assert ok
+    assert page.errors == []
