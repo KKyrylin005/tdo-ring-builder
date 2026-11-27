@@ -322,6 +322,18 @@
     .tile:not(:disabled):hover svg, .tile:not(:disabled):hover .swatch { transform: scale(1.06); }
   }
 
+  /* Section bar: one tab per choice, sticks while the choices scroll, the green line glides to the one in view */
+  .secnav { position: sticky; top: 0; z-index: 2; margin: 0 0 8px; background: #fff; border-bottom: 1px solid var(--line); }
+  .secnav-track { display: flex; gap: 4px; overflow-x: auto; scrollbar-width: none; }
+  .secnav-track::-webkit-scrollbar { display: none; }
+  .secnav button { flex: 1 0 auto; display: flex; flex-direction: column; align-items: flex-start; gap: 0; min-height: 48px; padding: 8px 8px 12px 0; border: 0; background: none; color: var(--text-3); font: inherit; text-align: left; cursor: pointer; transition: color var(--t-hover) var(--ease); }
+  .secnav .n { font-size: 12px; line-height: 16px; }
+  .secnav .v { max-width: 112px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 13px; line-height: 20px; color: var(--text-2); transition: color var(--t-hover) var(--ease); }
+  .secnav button:hover, .secnav button[aria-current="true"] { color: var(--green); }
+  .secnav button[aria-current="true"] .v { color: var(--text); }
+  .secnav button:focus-visible { outline: 2px solid var(--green); outline-offset: -2px; }
+  .secnav-ind { position: absolute; left: 0; bottom: -1px; width: 1px; height: 2px; background: var(--green); transform-origin: left center; transform: translateX(var(--x, 0)) scaleX(var(--w, 0)); transition: transform var(--t-fill) var(--ease); pointer-events: none; }
+  .one-page .step-panel { scroll-margin-top: 72px; }
   @media (max-width: 1080px) { :root { --panel: 380px; } .builder { gap: 40px; } }
   @media (max-width: 960px) {
     /* Phone: title, then the ring stuck to the top while the steps scroll under it */
@@ -333,10 +345,15 @@
     .stepper :is(button, input):focus { scroll-margin-top: calc(var(--stage-height) + 16px); }
     .stage .note { display: none; }
     .stepper { order: 2; margin-top: 16px; }
+    .secnav { top: calc(var(--stage-height) + 8px); margin: 0 -20px 8px; padding: 0 20px; }
+    .secnav .v { display: none; }
+    .secnav button { min-height: 44px; padding: 12px 12px 12px 0; }
+    .secnav .n { font-size: 13px; line-height: 20px; }
     .panel .actions { order: 3; margin-top: 16px; }
     .panel h1 { font-size: 30px; }
   }
   @media (max-width: 960px) and (max-height: 520px) {
+    .secnav { top: 0; }
     .stage { position: static; }
     .stepper :is(button, input):focus { scroll-margin-top: 12px; }
   }
@@ -408,6 +425,7 @@
 
       <div class="stepper one-page">
         <nav class="progress" id="progress" aria-label="Steps"></nav>
+        <nav class="secnav" id="secnav" aria-label="Jump to a choice"><div class="secnav-track"></div><span class="secnav-ind" aria-hidden="true"></span></nav>
         <div id="steps"></div>
         <div class="sr-only" id="step-announce" aria-live="polite"></div>
         <div class="step-nav">
@@ -818,6 +836,8 @@
       }
       var sv = step.querySelector('.step-value');
       if (sv && sv.textContent !== text) { var had = sv.textContent; sv.textContent = text; if (had) soften(sv); }
+      var sb = secTrack.querySelector('[data-sec="' + x.axis.key + '"] .v');
+      if (sb && sb.textContent !== text) { var hadSb = sb.textContent; sb.textContent = text; if (hadSb) soften(sb); }
       var rr = stepsEl.querySelector('[data-review="' + x.axis.key + '"] .v');
       if (rr) rr.textContent = reviewText;
       x.opts.forEach(function (opt) {
@@ -1115,8 +1135,83 @@
       if (key === 'shank') reviewRow(PAVE_KEY, 'Side stones', i).hidden = true;
     });
     stepsEl.appendChild(review);
+    buildSecnav(list);
     show(Math.min(current, total - 1));
   }
+
+  // Section bar over the choices: a short name and the current pick per section. Tapping one glides the page to it;
+  // while the shopper scrolls, the green line follows the section in view.
+  var SEC_SHORT = { shape: 'Shape', centerStone: 'Colour', head: 'Head', shank: 'Band', headMetal: 'Metal', shankMetal: 'Metal', carat: 'Carat' };
+  var secnav = document.getElementById('secnav'), secTrack = secnav.querySelector('.secnav-track'), secInd = secnav.querySelector('.secnav-ind');
+  var secActive = null, secLock = 0;
+  function buildSecnav(list) {
+    secTrack.innerHTML = '';
+    list.forEach(function (x, i) {
+      var b = document.createElement('button');
+      b.type = 'button';
+      b.setAttribute('data-sec', x.axis.key);
+      b.innerHTML = '<span class="n"></span><span class="v"></span>';
+      b.querySelector('.n').textContent = SEC_SHORT[x.axis.key] || stepNames[i];
+      b.setAttribute('aria-label', 'Go to ' + stepNames[i].toLowerCase());
+      b.addEventListener('click', function () { goToSection(x.axis.key); });
+      secTrack.appendChild(b);
+    });
+    secActive = null;
+    spySections();
+  }
+  function secTop() { return secnav.getBoundingClientRect().bottom; }
+  function goToSection(key) {
+    var panel = stepsEl.querySelector('.step-panel[data-axis="' + key + '"]');
+    if (!panel) return;
+    setSecActive(key);
+    secLock = Date.now() + 900;
+    // Where the bar will sit once stuck (it may still be lower on the page before the scroll)
+    var stuck = (parseFloat(getComputedStyle(secnav).top) || 0) + secnav.offsetHeight;
+    var y = panel.getBoundingClientRect().top + window.scrollY - stuck - 8;
+    window.scrollTo({ top: Math.max(0, y), behavior: calm ? 'auto' : 'smooth' });
+    var t = panel.querySelector('.tile[aria-pressed="true"]:not(:disabled)') || panel.querySelector('.tile:not(:disabled)');
+    if (t) t.focus({ preventScroll: true });
+  }
+  function setSecActive(key) {
+    if (key === secActive) return placeSecInd();
+    secActive = key;
+    secTrack.querySelectorAll('button').forEach(function (b) { b.setAttribute('aria-current', b.getAttribute('data-sec') === key ? 'true' : 'false'); });
+    var b = secTrack.querySelector('[data-sec="' + key + '"]');
+    // Keep the active tab in view when the bar scrolls sideways on a phone
+    if (b && secTrack.scrollWidth > secTrack.clientWidth) {
+      var l = b.offsetLeft - 20, r = b.offsetLeft + b.offsetWidth - secTrack.clientWidth + 20;
+      if (secTrack.scrollLeft > l) secTrack.scrollTo({ left: l, behavior: calm ? 'auto' : 'smooth' });
+      else if (secTrack.scrollLeft < r) secTrack.scrollTo({ left: r, behavior: calm ? 'auto' : 'smooth' });
+    }
+    placeSecInd();
+  }
+  function placeSecInd() {
+    var b = secActive && secTrack.querySelector('[data-sec="' + secActive + '"]');
+    if (!b) { secInd.style.setProperty('--w', 0); return; }
+    var nr = secnav.getBoundingClientRect(), br = b.getBoundingClientRect();
+    var pad = parseFloat(getComputedStyle(b).paddingRight) || 0;
+    secInd.style.setProperty('--x', (br.left - nr.left) + 'px');
+    secInd.style.setProperty('--w', Math.max(0, br.width - pad));
+  }
+  function spySections() {
+    if (Date.now() < secLock) return;
+    var panels = [].slice.call(stepsEl.querySelectorAll('.step-panel[data-axis]')).filter(function (p) { return !p.hidden; });
+    if (!panels.length) return;
+    // The section that crosses a line a third of the way down the space under the bar is the one in view
+    var top = secTop(), line = top + Math.max(24, (window.innerHeight - top) * 0.3), key = panels[0].getAttribute('data-axis');
+    panels.forEach(function (p) { if (p.getBoundingClientRect().top <= line) key = p.getAttribute('data-axis'); });
+    setSecActive(key);
+  }
+  var secTick = false;
+  function onSecScroll() {
+    if (secTick) return;
+    secTick = true;
+    requestAnimationFrame(function () { secTick = false; spySections(); });
+  }
+  window.addEventListener('scroll', onSecScroll, { passive: true });
+  window.addEventListener('resize', function () { placeSecInd(); onSecScroll(); });
+  secTrack.addEventListener('scroll', placeSecInd, { passive: true });
+  window.addEventListener('scrollend', function () { secLock = 0; spySections(); });
 
 
   // Restyle the iJewel buttons over the ring in TDO style. They live in the viewer's open shadow root.

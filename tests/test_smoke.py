@@ -68,3 +68,23 @@ def test_six_prong_shows_only_shapes_it_has(page, base_url):
     page.wait_for_function('document.querySelectorAll(\'#steps [data-axis="shape"] .tile.gone\').length === 0', timeout=20000)
     assert page.locator('#steps [data-axis="shape"] > .opts .tile:not(.gone)').count() == len(SHAPES)
     assert page.errors == []
+
+
+def test_section_bar_jumps_and_follows_scroll(page, base_url):
+    """27.11: a bar over the choices names each section with its pick; a tap glides to the section,
+    and the active tab follows the scroll."""
+    open_builder(page, base_url)
+    page.wait_for_selector('#ring-3d.ready', timeout=90000)
+    names = page.locator('#secnav .n').all_inner_texts()
+    assert names == ['Shape', 'Colour', 'Head', 'Band', 'Metal'], names
+    assert 'Round' in page.locator('#secnav [data-sec="shape"] .v').inner_text()
+    page.locator('#secnav [data-sec="shank"]').click()
+    page.wait_for_timeout(1500)
+    assert page.locator('#secnav [aria-current="true"]').get_attribute('data-sec') == 'shank'
+    band_top = page.locator('#steps .step-panel[data-axis="shank"]').evaluate('e => e.getBoundingClientRect().top')
+    bar_bottom = page.locator('#secnav').evaluate('e => e.getBoundingClientRect().bottom')
+    assert 0 <= band_top - bar_bottom <= 40, (band_top, bar_bottom)
+    page.evaluate("document.querySelector('#steps .step-panel[data-axis=\"shape\"]').scrollIntoView()")
+    page.wait_for_timeout(1200)
+    assert page.locator('#secnav [aria-current="true"]').get_attribute('data-sec') == 'shape'
+    assert page.errors == []
