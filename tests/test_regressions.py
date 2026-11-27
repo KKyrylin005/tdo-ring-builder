@@ -81,3 +81,18 @@ def test_every_centre_stone_has_its_own_light_map(page, base_url):
     })()""")
     assert ok
     assert page.errors == []
+
+
+def test_radiant_gets_more_light_bounces_only_while_chosen(page, base_url):
+    """27.11: the Radiant showed two black bands where light ran out of bounces; it now gets 8, others keep iJewel's."""
+    open_builder(page, base_url)
+    page.wait_for_selector('#ring-3d.ready', timeout=90000)
+    js = """(() => { var v = viewers3d().find(x => x && x.scene), g;
+      v.scene.modelRoot.traverse(o => { if (o.isMesh && o.material && o.material.name === 'Gem 01') g = o; });
+      return g && g.material.defines.RAY_BOUNCES; })()"""
+    tile(page, 'shape', 'Radiant').click()
+    page.wait_for_function('(' + js + ') === 8', timeout=30000)
+    tile(page, 'shape', 'Round').click()
+    page.wait_for_function("session.selection().shape === 'round'", timeout=20000)
+    page.wait_for_function('(' + js + ') === 5', timeout=30000)
+    assert page.errors == []

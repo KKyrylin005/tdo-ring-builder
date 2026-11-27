@@ -607,7 +607,33 @@
       } catch (e) { console.warn('stone light', e); }
     });
   }
-  setInterval(function () { if (session) { fixGemNormals(); applyPave(); } }, 600);
+  // Radiant: light inside its long pavilion needs more bounces than iJewel's 5 to find its way out; rays that ran
+  // out of bounces were drawn black, two dark bands at the ends (27.11, Alina). 8 bounces clear them. Only the
+  // Radiant pays for the extra work, which matters on phones.
+  var STONE_BOUNCES = { Radiant: 8 };
+  function centreLabel() {
+    var t = stepsEl && stepsEl.querySelector('[data-axis="shape"] > .opts .tile[aria-pressed="true"]');
+    return t ? t.textContent.trim() : '';
+  }
+  function tuneCentreStone() {
+    var want = STONE_BOUNCES[centreLabel()];
+    viewers3d().forEach(function (v) {
+      if (!v || !v.scene || !v.scene.modelRoot) return;
+      var changed = false;
+      v.scene.modelRoot.traverse(function (o) {
+        var m = o.isMesh && o.material;
+        if (!m || m.name !== 'Gem 01' || !m.defines || m.defines.RAY_BOUNCES === undefined) return;
+        var ud = m.userData;
+        // A value iJewel wrote (not ours) becomes the one to return to
+        if (m.defines.RAY_BOUNCES !== ud.tdoBounces) ud.tdoBouncesBase = m.defines.RAY_BOUNCES;
+        var n = want || ud.tdoBouncesBase;
+        if (n !== undefined && m.defines.RAY_BOUNCES !== n) { m.defines.RAY_BOUNCES = n; m.needsUpdate = true; changed = true; }
+        ud.tdoBounces = m.defines.RAY_BOUNCES;
+      });
+      if (changed) v.setDirty();
+    });
+  }
+  setInterval(function () { if (session) { fixGemNormals(); applyPave(); tuneCentreStone(); } }, 600);
   function setPave(c) { paveColor = c; render(); updateWhatsApp(); watchPave(); }
   // Bands with side stones, by label: every pavé band, the twisted band (one strand is set with stones),
   // plus the marquise, bezel, accent and side-stone bands
