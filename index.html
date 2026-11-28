@@ -10,6 +10,18 @@
 <link rel="preconnect" href="https://releases.ijewel3d.com">
 <link rel="preconnect" href="https://drive-weur-1.app.ijewel3d.com" crossorigin>
 <link rel="preconnect" href="https://drive-weur-1.ijewel3d.com" crossorigin>
+<!-- The 3D viewer loads its files one after another (SDK, then its engine, then the viewer, then lighting and
+     stone textures). Fetching them all at once from the start cuts that chain: the files are the same each visit. -->
+<link rel="preconnect" href="https://packs.ijewel3d.com" crossorigin>
+<link rel="preconnect" href="https://playground.ijewel3d.com" crossorigin>
+<link rel="preload" as="script" crossorigin href="https://releases.ijewel3d.com/libs/webgi-v0/bundle-0.22.2-dev.9.js">
+<link rel="preload" as="script" crossorigin href="https://releases.ijewel3d.com/libs/mini-viewer/0.6.24-dev.1/bundle.nowebgi.iife.js">
+<link rel="preload" as="fetch" crossorigin href="https://packs.ijewel3d.com/files/000_master_builder_01_53ae768456.vjson">
+<link rel="preload" as="fetch" crossorigin href="https://playground.ijewel3d.com/assetspro/hdrmaps/metal/env-metal-010.exr">
+<link rel="preload" as="fetch" crossorigin href="https://playground.ijewel3d.com/assetspro/hdrmaps/gem/env-gem-010.exr">
+<link rel="preload" as="fetch" crossorigin href="https://packs.ijewel3d.com/files/env_metal_061_bb9deadad0.exr">
+<link rel="preload" as="fetch" crossorigin href="https://packs.ijewel3d.com/files/env_gem_004_13d65af3ba.exr">
+<link rel="preload" as="fetch" crossorigin href="https://cdn.jsdelivr.net/gh/google/draco@1.4.1/javascript/draco_decoder.js">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
@@ -207,7 +219,16 @@
   #ring-3d:fullscreen { width: 100vw; height: 100vh; max-height: none; aspect-ratio: auto; background: #fff !important; }
   #ring-3d::backdrop { background: #fff; }
   #ring-3d :fullscreen { background: #fff !important; }
-  #ring-3d.ready .status { visibility: hidden; }
+  #ring-3d.ready .status { opacity: 0; visibility: hidden; transition: opacity 500ms var(--ease), visibility 0s linear 500ms; }
+  /* Loading: the TDO wordmark with light passing over it, and a thin line running underneath */
+  #ring-3d .loader { display: flex; flex-direction: column; align-items: center; gap: 18px; width: min(240px, 56%); animation: loader-in 700ms var(--ease) 120ms both; }
+  #ring-3d .loader-mark { display: block; width: 100%; aspect-ratio: 991 / 70; -webkit-mask: url(assets/logo-loader.png) center / contain no-repeat; mask: url(assets/logo-loader.png) center / contain no-repeat; background: linear-gradient(100deg, #b3b3b3 0%, #b3b3b3 38%, #1a1a1a 50%, #b3b3b3 62%, #b3b3b3 100%) 0 0 / 300% 100%; animation: loader-shine 2.4s linear infinite; }
+  #ring-3d .loader-line { position: relative; display: block; width: 56px; height: 1px; overflow: hidden; background: rgba(0, 0, 0, .08); }
+  #ring-3d .loader-line::after { content: ""; position: absolute; inset: 0; width: 40%; background: #1a1a1a; animation: loader-run 1.4s cubic-bezier(.65, 0, .35, 1) infinite; }
+  @keyframes loader-in { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+  @keyframes loader-shine { 0% { background-position: 100% 0; } 75%, 100% { background-position: 0 0; } }
+  @keyframes loader-run { from { transform: translateX(-100%); } to { transform: translateX(250%); } }
+  @media (prefers-reduced-motion: reduce) { #ring-3d .loader-mark { background: #8a8a8a; } }
   /* Carat switch: the new 3D view loads under cover and fades in over the old one */
   #ring-3d .ijewel-view { position: absolute !important; inset: 0; transition: opacity 400ms var(--ease); }
   #ring-3d .ijewel-view.incoming { opacity: 0; pointer-events: none; }
@@ -412,7 +433,7 @@
 
   <section class="builder" aria-label="Build your ring">
     <div class="stage">
-      <div id="ring-3d" role="group" aria-label="3D view of your ring"><div class="status" id="status" role="status">Loading your ring</div><div class="zoom-hint" id="zoom-hint" aria-hidden="true">Use Ctrl + scroll to zoom</div></div>
+      <div id="ring-3d" role="group" aria-label="3D view of your ring"><div class="status" id="status" role="status"><span class="loader" aria-hidden="true"><span class="loader-mark"></span><span class="loader-line"></span></span><span class="sr-only">Loading your ring</span></div><div class="zoom-hint" id="zoom-hint" aria-hidden="true">Use Ctrl + scroll to zoom</div></div>
       <div class="note">3D preview of your ring, shown with a 2 ct centre stone. Other carat sizes are available on request: chat with your specialist. Every ring is crafted to order to these choices</div>
     </div>
 
