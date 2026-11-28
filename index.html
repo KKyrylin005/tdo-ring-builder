@@ -221,12 +221,12 @@
   #ring-3d :fullscreen { background: #fff !important; }
   #ring-3d.ready .status { opacity: 0; visibility: hidden; transition: opacity 500ms var(--ease), visibility 0s linear 500ms; }
   /* Loading: the TDO monogram with light passing over it, and a thin line running underneath */
-  #ring-3d .loader { display: flex; flex-direction: column; align-items: center; gap: 20px; width: min(92px, 30%); animation: loader-in 700ms var(--ease) 120ms both; }
-  #ring-3d .loader-mark { display: block; width: 100%; aspect-ratio: 600 / 315; -webkit-mask: url(assets/tdo-monogram.png) center / contain no-repeat; mask: url(assets/tdo-monogram.png) center / contain no-repeat; background: linear-gradient(105deg, #C3CEC9 0%, #C3CEC9 36%, var(--green) 50%, #C3CEC9 64%, #C3CEC9 100%) 0 0 / 300% 100%; animation: loader-shine 2.4s linear infinite; }
+  #ring-3d .loader { display: flex; flex-direction: column; align-items: center; gap: 20px; width: min(92px, 30%); animation: loader-in 900ms var(--ease) 120ms both; }
+  #ring-3d .loader-mark { display: block; width: 100%; aspect-ratio: 600 / 315; -webkit-mask: url(assets/tdo-monogram.png) center / contain no-repeat; mask: url(assets/tdo-monogram.png) center / contain no-repeat; background: linear-gradient(105deg, #C3CEC9 0%, #C3CEC9 32%, #6F8A82 41%, var(--green) 50%, #6F8A82 59%, #C3CEC9 68%, #C3CEC9 100%) 0 0 / 350% 100%; animation: loader-shine 3.4s cubic-bezier(.45, 0, .55, 1) infinite; }
   #ring-3d .loader-line { position: relative; display: block; width: 48px; height: 1px; overflow: hidden; background: rgba(9, 54, 47, .1); }
-  #ring-3d .loader-line::after { content: ""; position: absolute; inset: 0; width: 40%; background: var(--green); animation: loader-run 1.4s cubic-bezier(.65, 0, .35, 1) infinite; }
+  #ring-3d .loader-line::after { content: ""; position: absolute; inset: 0; width: 40%; background: var(--green); animation: loader-run 2s cubic-bezier(.45, 0, .55, 1) infinite; }
   @keyframes loader-in { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
-  @keyframes loader-shine { 0% { background-position: 100% 0; } 75%, 100% { background-position: 0 0; } }
+  @keyframes loader-shine { 0% { background-position: 100% 0; } 82%, 100% { background-position: 0 0; } }
   @keyframes loader-run { from { transform: translateX(-100%); } to { transform: translateX(250%); } }
   @media (prefers-reduced-motion: reduce) { #ring-3d .loader-mark { background: var(--green); } }
   /* Carat switch: the new 3D view loads under cover and fades in over the old one */
