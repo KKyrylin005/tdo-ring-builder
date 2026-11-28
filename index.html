@@ -222,7 +222,7 @@
   #ring-3d.ready .status { opacity: 0; visibility: hidden; transition: opacity 500ms var(--ease), visibility 0s linear 500ms; }
   /* Loading: the TDO monogram with light passing over it, and a thin line running underneath */
   #ring-3d .loader { display: flex; flex-direction: column; align-items: center; gap: 20px; width: min(92px, 30%); animation: loader-in 700ms var(--ease) 120ms both; }
-  #ring-3d .loader-mark { display: block; width: 100%; aspect-ratio: 600 / 315; -webkit-mask: url(assets/logo-loader.png) center / contain no-repeat; mask: url(assets/logo-loader.png) center / contain no-repeat; background: linear-gradient(105deg, #C3CEC9 0%, #C3CEC9 36%, var(--green) 50%, #C3CEC9 64%, #C3CEC9 100%) 0 0 / 300% 100%; animation: loader-shine 2.4s linear infinite; }
+  #ring-3d .loader-mark { display: block; width: 100%; aspect-ratio: 600 / 315; -webkit-mask: url(assets/tdo-monogram.png) center / contain no-repeat; mask: url(assets/tdo-monogram.png) center / contain no-repeat; background: linear-gradient(105deg, #C3CEC9 0%, #C3CEC9 36%, var(--green) 50%, #C3CEC9 64%, #C3CEC9 100%) 0 0 / 300% 100%; animation: loader-shine 2.4s linear infinite; }
   #ring-3d .loader-line { position: relative; display: block; width: 48px; height: 1px; overflow: hidden; background: rgba(9, 54, 47, .1); }
   #ring-3d .loader-line::after { content: ""; position: absolute; inset: 0; width: 40%; background: var(--green); animation: loader-run 1.4s cubic-bezier(.65, 0, .35, 1) infinite; }
   @keyframes loader-in { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
